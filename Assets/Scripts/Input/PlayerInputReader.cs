@@ -40,15 +40,6 @@ public class PlayerInputReader : MonoBehaviour
         ReadButtons();
     }
 
-    private void LateUpdate()
-    {
-        InteractPressed = false;
-        LanternPressed = false;
-        GuitarPressed = false;
-        TempoPressed = false;
-        PistaPressed = false;
-    }
-
     private void ReadMovement()
     {
         MoveInput = moveAction.ReadValue<Vector2>();
@@ -67,5 +58,14 @@ public class PlayerInputReader : MonoBehaviour
         GuitarPressed = guitarAction.WasPressedThisFrame();
         TempoPressed = tempoAction.WasPressedThisFrame();
         PistaPressed = pistaAction.WasPressedThisFrame();
+    }
+
+    public void ClearFrameButtons()
+    {
+        InteractPressed = false;
+        LanternPressed = false;
+        GuitarPressed = false;
+        TempoPressed = false;
+        PistaPressed = false;
     }
 }

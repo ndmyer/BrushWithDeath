@@ -2,6 +2,7 @@ using UnityEngine;
 
 [RequireComponent(typeof(PlayerInputReader))]
 [RequireComponent(typeof(PlayerMotor))]
+[RequireComponent(typeof(PlayerInteractor))]
 public class PlayerController : MonoBehaviour
 {
     public enum PlayerState
@@ -18,6 +19,7 @@ public class PlayerController : MonoBehaviour
 
     private PlayerInputReader inputReader;
     private PlayerMotor motor;
+    private PlayerInteractor interactor;
 
     public PlayerState CurrentState { get; private set; } = PlayerState.Normal;
 
@@ -25,12 +27,14 @@ public class PlayerController : MonoBehaviour
     {
         inputReader = GetComponent<PlayerInputReader>();
         motor = GetComponent<PlayerMotor>();
+        interactor = GetComponent<PlayerInteractor>();
     }
 
     private void Update()
     {
         HandleStateLogic();
         UpdateAnimator();
+        inputReader.ClearFrameButtons();
     }
 
     private void HandleStateLogic()
@@ -52,19 +56,19 @@ public class PlayerController : MonoBehaviour
         motor.SetMovementInput(inputReader.MoveInput);
 
         if (inputReader.InteractPressed)
-            Debug.Log("Interact pressed");
+            HandleInteract();
 
         if (inputReader.LanternPressed)
-            Debug.Log("Lantern pressed");
+            HandleLantern();
 
         if (inputReader.GuitarPressed)
-            Debug.Log("Guitar pressed");
+            HandleGuitar();
 
         if (inputReader.TempoPressed)
-            Debug.Log("Tempo pressed");
+            HandleTempo();
 
         if (inputReader.PistaPressed)
-            Debug.Log("Pista pressed");
+            HandlePista();
     }
 
     private void UpdateAnimator()
@@ -84,5 +88,31 @@ public class PlayerController : MonoBehaviour
     public void SetState(PlayerState newState)
     {
         CurrentState = newState;
+    }
+
+    private void HandleInteract()
+    {
+        Debug.Log("Player Interacted.");
+        interactor.TryInteract(motor.FacingDirection, this);
+    }
+
+    private void HandleLantern()
+    {
+        Debug.Log("Lantern action not implemented yet.");
+    }
+
+    private void HandleGuitar()
+    {
+        Debug.Log("Guitar action not implemented yet.");
+    }
+
+    private void HandleTempo()
+    {
+        Debug.Log("Tempo action not implemented yet.");
+    }
+
+    private void HandlePista()
+    {
+        Debug.Log("Pista action not implemented yet.");
     }
 }
