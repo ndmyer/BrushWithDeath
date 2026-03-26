@@ -24,7 +24,7 @@ public class PlayerMotor : MonoBehaviour
         movementInput = input;
 
         if (input.sqrMagnitude > 0.01f)
-            facingDirection = input.normalized;
+            facingDirection = DirectionUtility.ToCardinal(input);
     }
 
     public void StopMovement()
