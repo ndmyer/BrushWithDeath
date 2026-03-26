@@ -544,7 +544,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 5680ffb666895354181b944194ce56f2, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::PlayerInteractor
-  interactionOrigin: {fileID: 0}
+  interactionOrigin: {fileID: 887717965}
   interactionDistance: 0.75
   interactionRadius: 0.2
   interactionMask:

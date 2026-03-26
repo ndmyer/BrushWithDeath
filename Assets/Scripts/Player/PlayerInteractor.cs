@@ -26,9 +26,16 @@ public class PlayerInteractor : MonoBehaviour
     private void OnDrawGizmosSelected()
     {
         Vector2 origin = interactionOrigin != null ? (Vector2)interactionOrigin.position : (Vector2)transform.position;
+
+        Vector2 direction = Vector2.down;
+        PlayerMotor motor = GetComponent<PlayerMotor>();
+        if (motor != null && motor.FacingDirection.sqrMagnitude > 0.001f)
+            direction = motor.FacingDirection;
+
         Gizmos.color = Color.yellow;
         Gizmos.DrawWireSphere(origin, interactionRadius);
-        Gizmos.DrawLine(origin, origin + Vector2.down * interactionDistance);
-        Gizmos.DrawWireSphere(origin + Vector2.down * interactionDistance, interactionRadius);
+        Gizmos.DrawLine(origin, origin + direction * interactionDistance);
+        Gizmos.DrawWireSphere(origin + direction * interactionDistance, interactionRadius);
     }
+
 }
