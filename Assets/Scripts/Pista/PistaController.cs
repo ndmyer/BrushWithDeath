@@ -49,7 +49,10 @@ public class PistaController : MonoBehaviour
                 break;
 
             case PistaState.Aiming:
-                MoveToward(GetFollowAnchorPosition(), followMoveSpeed);
+                if (CurrentLanternTarget != null)
+                    SnapToLanternTarget();
+                else
+                    MoveToward(GetFollowAnchorPosition(), followMoveSpeed);
                 break;
 
             case PistaState.MovingToLantern:
@@ -77,8 +80,14 @@ public class PistaController : MonoBehaviour
         aimStickEngaged = false;
         CurrentPreviewTarget = null;
 
-        if (CurrentState == PistaState.LatchedToLantern)
+        if (CurrentState == PistaState.MovingToLantern)
             return;
+
+        if (CurrentLanternTarget != null)
+        {
+            CurrentState = PistaState.LatchedToLantern;
+            return;
+        }
 
         CurrentState = PistaState.FollowingPlayer;
     }
@@ -102,10 +111,11 @@ public class PistaController : MonoBehaviour
 
     public void ProcessAimInput(Vector2 aimInput)
     {
-        if (CurrentState == PistaState.MovingToLantern || CurrentState == PistaState.LatchedToLantern)
+        if (CurrentState == PistaState.MovingToLantern)
             return;
 
         float inputMagnitude = aimInput.magnitude;
+        bool isLatched = CurrentState == PistaState.LatchedToLantern;
 
         if (inputMagnitude >= stickEngageThreshold)
         {
@@ -117,8 +127,11 @@ public class PistaController : MonoBehaviour
 
         if (!aimStickEngaged)
         {
-            BeginAiming();
             CurrentPreviewTarget = null;
+
+            if (!isLatched)
+                BeginAiming();
+
             return;
         }
 
@@ -134,7 +147,8 @@ public class PistaController : MonoBehaviour
             }
         }
 
-        BeginAiming();
+        if (!isLatched)
+            BeginAiming();
     }
 
     public Vector3 GetFollowAnchorPosition()

@@ -154,8 +154,8 @@ MonoBehaviour:
     serializedVersion: 2
     m_Bits: 0
   followOffset: {x: 0.75, y: 0.75}
-  followMoveSpeed: 8
-  lanternQueryRange: 3
+  followMoveSpeed: 20
+  lanternQueryRange: 5
   halfConeAngle: 40
   stickEngageThreshold: 0.5
   stickResetThreshold: 0.2
@@ -208,7 +208,7 @@ SpriteRenderer:
   m_GlobalIlluminationMeshLod: 0
   m_SortingLayerID: 0
   m_SortingLayer: 0
-  m_SortingOrder: 0
+  m_SortingOrder: 1
   m_MaskInteraction: 0
   m_Sprite: {fileID: -2413806693520163455, guid: a86470a33a6bf42c4b3595704624658b, type: 3}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
@@ -229,7 +229,7 @@ Transform:
   m_GameObject: {fileID: 44535987}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 1.44, y: 1.6, z: 0}
+  m_LocalPosition: {x: 0.78, y: 1.52, z: 0}
   m_LocalScale: {x: 0.5, y: 0.5, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -344,7 +344,7 @@ Transform:
   m_GameObject: {fileID: 348153939}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: -3.4, y: 2.24, z: 0}
+  m_LocalPosition: {x: -1.87, y: 1.45, z: -1}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -551,7 +551,7 @@ Transform:
   m_GameObject: {fileID: 367723884}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: -4.77, y: 0.62271, z: 0}
+  m_LocalPosition: {x: -4.45, y: -0.7, z: -1}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -1438,7 +1438,7 @@ Transform:
   m_GameObject: {fileID: 1802196260}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: -5.8, y: 2.16, z: 0}
+  m_LocalPosition: {x: -5.09, y: 3.03, z: -1}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -1624,9 +1624,9 @@ SceneRoots:
   - {fileID: 519420032}
   - {fileID: 619394802}
   - {fileID: 887717965}
+  - {fileID: 44535990}
   - {fileID: 1723610838}
   - {fileID: 348153942}
   - {fileID: 367723888}
   - {fileID: 1802196264}
   - {fileID: 1959622099}
-  - {fileID: 44535990}
