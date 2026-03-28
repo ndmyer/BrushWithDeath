@@ -16,6 +16,7 @@ public class PlayerController : MonoBehaviour
     }
 
     [SerializeField] private Animator animator;
+    [SerializeField] private PistaController pistaController;
 
     private PlayerInputReader inputReader;
     private PlayerMotor motor;
@@ -28,6 +29,9 @@ public class PlayerController : MonoBehaviour
         inputReader = GetComponent<PlayerInputReader>();
         motor = GetComponent<PlayerMotor>();
         interactor = GetComponent<PlayerInteractor>();
+
+        if (pistaController == null)
+            pistaController = FindObjectOfType<PistaController>();
     }
 
     private void Update()
@@ -86,8 +90,18 @@ public class PlayerController : MonoBehaviour
     {
         motor.StopMovement();
 
+        if (inputReader.PistaRecallPressed)
+        {
+            pistaController?.RecallToPlayer();
+            SetState(PlayerState.Normal);
+            return;
+        }
+
+        pistaController?.ProcessAimInput(inputReader.MoveInput);
+
         if (!inputReader.PistaHeld)
         {
+            pistaController?.EndAiming();
             SetState(PlayerState.Normal);
             return;
         }
@@ -137,9 +151,14 @@ public class PlayerController : MonoBehaviour
     private void HandlePista()
     {
         if (inputReader.PistaRecallPressed)
+        {
+            pistaController?.RecallToPlayer();
             Debug.Log("Pista recall requested.");
+            return;
+        }
 
         Debug.Log("Entered Pista focus.");
+        pistaController?.BeginAiming();
         SetState(PlayerState.PistaFocus);
         motor.StopMovement();
     }
