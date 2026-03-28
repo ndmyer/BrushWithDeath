@@ -45,6 +45,10 @@ public class PlayerController : MonoBehaviour
                 HandleNormalState();
                 break;
 
+            case PlayerState.PistaFocus:
+                HandlePistaFocusState();
+                break;
+
             default:
                 motor.StopMovement();
                 break;
@@ -53,6 +57,13 @@ public class PlayerController : MonoBehaviour
 
     private void HandleNormalState()
     {
+        // if (inputReader.PistaHeld)
+        // {
+        //     SetState(PlayerState.PistaFocus);
+        //     motor.StopMovement();
+        //     return;
+        // }
+
         motor.SetMovementInput(inputReader.MoveInput);
 
         if (inputReader.InteractPressed)
@@ -69,6 +80,17 @@ public class PlayerController : MonoBehaviour
 
         if (inputReader.PistaPressed)
             HandlePista();
+    }
+
+    private void HandlePistaFocusState()
+    {
+        motor.StopMovement();
+
+        if (!inputReader.PistaHeld)
+        {
+            SetState(PlayerState.Normal);
+            return;
+        }
     }
 
     private void UpdateAnimator()
@@ -114,6 +136,11 @@ public class PlayerController : MonoBehaviour
 
     private void HandlePista()
     {
-        Debug.Log("Pista action not implemented yet.");
+        if (inputReader.PistaRecallPressed)
+            Debug.Log("Pista recall requested.");
+
+        Debug.Log("Entered Pista focus.");
+        SetState(PlayerState.PistaFocus);
+        motor.StopMovement();
     }
 }

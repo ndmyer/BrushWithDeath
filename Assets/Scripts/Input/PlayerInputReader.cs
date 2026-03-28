@@ -4,6 +4,8 @@ using UnityEngine.InputSystem;
 [RequireComponent(typeof(PlayerInput))]
 public class PlayerInputReader : MonoBehaviour
 {
+    [SerializeField] private float pistaDoubleTapWindow = 0.3f;
+
     private PlayerInput playerInput;
 
     private InputAction moveAction;
@@ -21,6 +23,10 @@ public class PlayerInputReader : MonoBehaviour
     public bool GuitarPressed { get; private set; }
     public bool TempoPressed { get; private set; }
     public bool PistaPressed { get; private set; }
+    public bool PistaHeld { get; private set; }
+    public bool PistaRecallPressed { get; private set; }
+
+    private float lastPistaPressTime = float.NegativeInfinity;
 
     private void Awake()
     {
@@ -58,6 +64,18 @@ public class PlayerInputReader : MonoBehaviour
         GuitarPressed = guitarAction.WasPressedThisFrame();
         TempoPressed = tempoAction.WasPressedThisFrame();
         PistaPressed = pistaAction.WasPressedThisFrame();
+        PistaHeld = pistaAction.IsPressed();
+        PistaRecallPressed = false;
+
+        if (PistaPressed)
+        {
+            float currentTime = Time.time;
+
+            if (currentTime - lastPistaPressTime <= pistaDoubleTapWindow)
+                PistaRecallPressed = true;
+
+            lastPistaPressTime = currentTime;
+        }
     }
 
     public void ClearFrameButtons()
@@ -67,5 +85,6 @@ public class PlayerInputReader : MonoBehaviour
         GuitarPressed = false;
         TempoPressed = false;
         PistaPressed = false;
+        PistaRecallPressed = false;
     }
 }
