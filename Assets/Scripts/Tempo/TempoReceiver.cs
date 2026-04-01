@@ -4,18 +4,13 @@ using UnityEngine.Events;
 
 public class TempoReceiver : MonoBehaviour
 {
-    public enum TempoBand
-    {
-        Slow,
-        Mid,
-        Fast,
-        Intense
-    }
 
     [Serializable]
     public class TempoEvent : UnityEvent<TempoBand> { }
 
     [SerializeField] private TempoBand requiredTempo = TempoBand.Mid;
+    [SerializeField] private bool listenToGlobalTempo = true;
+    [SerializeField] private TempoService tempoService;
     [SerializeField] private PuzzleStateBool targetState;
     [SerializeField] private PuzzleEventEmitter eventEmitter;
     [SerializeField] private bool invertMatchResult;
@@ -25,11 +20,35 @@ public class TempoReceiver : MonoBehaviour
 
     private void Awake()
     {
+        if (tempoService == null)
+            tempoService = TempoService.Instance != null ? TempoService.Instance : FindAnyObjectByType<TempoService>();
+
         if (targetState == null)
             targetState = GetComponent<PuzzleStateBool>();
 
         if (eventEmitter == null)
             eventEmitter = GetComponent<PuzzleEventEmitter>();
+    }
+
+    private void OnEnable()
+    {
+        if (!listenToGlobalTempo)
+            return;
+
+        if (tempoService == null)
+            tempoService = TempoService.Instance != null ? TempoService.Instance : FindAnyObjectByType<TempoService>();
+
+        if (tempoService == null)
+            return;
+
+        tempoService.TempoUpdated += HandleTempoUpdated;
+        HandleTempoUpdated(tempoService.GetCurrentSnapshot());
+    }
+
+    private void OnDisable()
+    {
+        if (tempoService != null)
+            tempoService.TempoUpdated -= HandleTempoUpdated;
     }
 
     public void ReceiveTempo(TempoBand tempo)
@@ -46,5 +65,16 @@ public class TempoReceiver : MonoBehaviour
             onTempoMatched?.Invoke();
         else
             onTempoMismatched?.Invoke();
+    }
+
+    private void HandleTempoUpdated(TempoStateSnapshot snapshot)
+    {
+        if (snapshot.UpdateType != TempoUpdateType.Initialized &&
+            snapshot.UpdateType != TempoUpdateType.ChannelCompleted)
+        {
+            return;
+        }
+
+        ReceiveTempo(snapshot.CurrentTempo);
     }
 }
