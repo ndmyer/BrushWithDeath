@@ -23,7 +23,7 @@ public class TempoService : MonoBehaviour
     private void Awake()
     {
         if (Instance != null && Instance != this)
-            Debug.LogWarning("Multiple TempoService instances detected. Latest instance will become the active global service.", this);
+            Debug.LogWarning("Multiple TempoService instances.", this);
 
         Instance = this;
         CurrentTempo = startingTempo;
@@ -63,6 +63,8 @@ public class TempoService : MonoBehaviour
         TargetTempo = targetTempo;
         ChannelElapsed = 0f;
         IsChanneling = true;
+
+        Debug.Log($"Tempo channel started: {CurrentTempo} -> {TargetTempo}", this);
 
         Broadcast(wasChanneling ? TempoUpdateType.ChannelTargetChanged : TempoUpdateType.ChannelStarted);
         return true;
