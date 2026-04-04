@@ -45,15 +45,15 @@ MonoBehaviour:
   m_GameObject: {fileID: 2470416144139562828}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 047fdf9eb52d15740b1cbf6040ef70c5, type: 3}
+  m_Script: {fileID: 11500000, guid: 134814eddc8308b49b10bcf92ffb460c, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::RadioController
   startingState: 0
-  broadcastRadius: 2.5
+  broadcastRadius: 0.4
   refreshInterval: 0.1
   auraRenderer: {fileID: 1100606689894053177}
   auraTransform: {fileID: 4986891761818006205}
-  auraDiameterMultiplier: 0.4
+  auraDiameterMultiplier: 2
   slowAuraColor: {r: 0.2, g: 0.6, b: 1, a: 0.2}
   fastAuraColor: {r: 1, g: 0.65, b: 0.2, a: 0.2}
   intenseAuraColor: {r: 1, g: 0.2, b: 0.2, a: 0.25}
@@ -369,7 +369,7 @@ Transform:
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_LocalScale: {x: 0.8, y: 0.8, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 1470036494450914275}
