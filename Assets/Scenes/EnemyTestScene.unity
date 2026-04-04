@@ -384,7 +384,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 831abf8874ff429c9168fec47f674f95, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::SimpleCameraFollow
+  m_EditorClassIdentifier: Assembly-CSharp::DynamicCameraFollow
   target: {fileID: 887717965}
   followDistance: 10
 --- !u!1 &619394800
