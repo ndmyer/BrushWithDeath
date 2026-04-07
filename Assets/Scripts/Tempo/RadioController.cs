@@ -134,7 +134,8 @@ public class RadioController : MonoBehaviour, IInteractable
             if (receiver == null)
                 continue;
 
-            Vector3 offset = receiver.transform.position - origin;
+            Vector3 receiverPoint = receiver.GetClosestBroadcastPoint(origin);
+            Vector3 offset = receiverPoint - origin;
             if (offset.sqrMagnitude > radiusSquared)
                 continue;
 
