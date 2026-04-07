@@ -33,6 +33,11 @@ public class PistaController : MonoBehaviour
     [SerializeField] private LayerMask switchInteractionLayers = ~0;
     [SerializeField] private float switchInteractionRadius = 0.2f;
 
+    [Header("Pulse Attack")]
+    [SerializeField] private LayerMask pulseAttackLayers = ~0;
+    [SerializeField] private float pulseAttackRadius = 0.9f;
+    [SerializeField, Min(0f)] private float pulseAttackKnockbackMultiplier = 1f;
+
     public PistaState CurrentState { get; private set; } = PistaState.FollowingPlayer;
     public Transform CurrentLanternTarget { get; private set; }
     public Transform CurrentPreviewTarget { get; private set; }
@@ -40,6 +45,7 @@ public class PistaController : MonoBehaviour
     private bool aimStickEngaged;
     private readonly Collider2D[] switchOverlapResults = new Collider2D[8];
     private readonly RaycastHit2D[] switchCastResults = new RaycastHit2D[8];
+    private readonly Collider2D[] pulseAttackResults = new Collider2D[16];
     private readonly HashSet<int> activatedSwitchesThisTravel = new();
 
     private void Awake()
@@ -117,6 +123,29 @@ public class PistaController : MonoBehaviour
         aimStickEngaged = false;
         activatedSwitchesThisTravel.Clear();
         CurrentState = PistaState.FollowingPlayer;
+    }
+
+    public int TriggerPulseAttack()
+    {
+        ContactFilter2D contactFilter = CreatePulseAttackContactFilter();
+        int overlapHitCount = Physics2D.OverlapCircle(transform.position, GetPulseAttackRadius(), contactFilter, pulseAttackResults);
+
+        HashSet<int> activatedSwitches = new();
+        HashSet<int> knockedBackTargets = new();
+        int affectedTargetCount = 0;
+
+        for (int i = 0; i < overlapHitCount; i++)
+        {
+            Collider2D hit = pulseAttackResults[i];
+
+            if (TryActivateSwitchFromCollider(hit, activatedSwitches))
+                affectedTargetCount++;
+
+            if (TryApplyPulseKnockback(hit, knockedBackTargets))
+                affectedTargetCount++;
+        }
+
+        return affectedTargetCount;
     }
 
     public void ProcessAimInput(Vector2 aimInput)
@@ -220,7 +249,7 @@ public class PistaController : MonoBehaviour
             int castHitCount = Physics2D.CircleCast(startPosition, interactionRadius, travelDirection, contactFilter, switchCastResults, travelDistance);
 
             for (int i = 0; i < castHitCount; i++)
-                ActivateSwitchFromCollider(switchCastResults[i].collider);
+                TryActivateSwitchFromCollider(switchCastResults[i].collider, activatedSwitchesThisTravel);
         }
 
         ActivateNearbySwitches(endPosition, contactFilter, interactionRadius);
@@ -231,21 +260,22 @@ public class PistaController : MonoBehaviour
         int overlapHitCount = Physics2D.OverlapCircle(position, interactionRadius, contactFilter, switchOverlapResults);
 
         for (int i = 0; i < overlapHitCount; i++)
-            ActivateSwitchFromCollider(switchOverlapResults[i]);
+            TryActivateSwitchFromCollider(switchOverlapResults[i], activatedSwitchesThisTravel);
     }
 
-    private void ActivateSwitchFromCollider(Collider2D hit)
+    private bool TryActivateSwitchFromCollider(Collider2D hit, HashSet<int> processedSwitches)
     {
         if (hit == null)
-            return;
+            return false;
 
         if (!TryGetInteractSwitch(hit, out InteractSwitch interactSwitch, out Component switchComponent))
-            return;
+            return false;
 
-        if (switchComponent == null || !activatedSwitchesThisTravel.Add(switchComponent.GetInstanceID()))
-            return;
+        if (switchComponent == null || processedSwitches == null || !processedSwitches.Add(switchComponent.GetInstanceID()))
+            return false;
 
         interactSwitch.Activate();
+        return true;
     }
 
     private ContactFilter2D CreateSwitchContactFilter()
@@ -261,6 +291,33 @@ public class PistaController : MonoBehaviour
     private float GetSwitchInteractionRadius()
     {
         return Mathf.Max(0.01f, switchInteractionRadius);
+    }
+
+    private bool TryApplyPulseKnockback(Collider2D hit, HashSet<int> processedTargets)
+    {
+        if (!TryGetInterface(hit, out IKnockbackable knockbackable, out Component targetComponent))
+            return false;
+
+        if (targetComponent == null || processedTargets == null || !processedTargets.Add(targetComponent.GetInstanceID()))
+            return false;
+
+        knockbackable.ApplyKnockbackFrom(transform.position, pulseAttackKnockbackMultiplier);
+        return true;
+    }
+
+    private ContactFilter2D CreatePulseAttackContactFilter()
+    {
+        return new ContactFilter2D
+        {
+            useLayerMask = true,
+            layerMask = pulseAttackLayers,
+            useTriggers = true
+        };
+    }
+
+    private float GetPulseAttackRadius()
+    {
+        return Mathf.Max(0.01f, pulseAttackRadius);
     }
 
     private static bool TryGetInteractSwitch(Collider2D source, out InteractSwitch interactSwitch, out Component component)
@@ -281,6 +338,27 @@ public class PistaController : MonoBehaviour
 
         interactSwitch = component as InteractSwitch;
         return interactSwitch != null;
+    }
+
+    private static bool TryGetInterface<T>(Collider2D source, out T value, out Component component)
+        where T : class
+    {
+        value = null;
+        component = null;
+
+        if (source == null)
+            return false;
+
+        component = source.GetComponent(typeof(T));
+        if (component == null)
+            component = source.GetComponentInParent(typeof(T));
+        if (component == null)
+            component = source.GetComponentInChildren(typeof(T));
+        if (component == null)
+            return false;
+
+        value = component as T;
+        return value != null;
     }
 
     private Transform FindBestLanternTarget(Vector2 aimDirection)
@@ -363,6 +441,9 @@ public class PistaController : MonoBehaviour
 
         Gizmos.color = new Color(1f, 0.6f, 0f, 0.4f);
         Gizmos.DrawWireSphere(transform.position, GetSwitchInteractionRadius());
+
+        Gizmos.color = new Color(1f, 0.2f, 0.2f, 0.45f);
+        Gizmos.DrawWireSphere(transform.position, GetPulseAttackRadius());
 
         if (CurrentLanternTarget == null)
             return;
