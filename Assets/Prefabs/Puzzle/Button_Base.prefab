@@ -14,7 +14,7 @@ GameObject:
   - component: {fileID: 2562688667350554619}
   - component: {fileID: 1421719579208022851}
   - component: {fileID: 1740471906322878346}
-  m_Layer: 0
+  m_Layer: 6
   m_Name: Button_Base
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -168,7 +168,7 @@ GameObject:
   m_Component:
   - component: {fileID: 2398841742608547366}
   - component: {fileID: 713056947381632865}
-  m_Layer: 0
+  m_Layer: 6
   m_Name: Button_Off_Sprite
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -259,7 +259,7 @@ GameObject:
   m_Component:
   - component: {fileID: 6711928997605168750}
   - component: {fileID: 1835630417489011480}
-  m_Layer: 0
+  m_Layer: 6
   m_Name: Button_On_Sprite
   m_TagString: Untagged
   m_Icon: {fileID: 0}

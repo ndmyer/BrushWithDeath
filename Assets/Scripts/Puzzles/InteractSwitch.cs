@@ -24,6 +24,11 @@ public class InteractSwitch : MonoBehaviour, IInteractable
 
     public void Interact(PlayerController player)
     {
+        Activate();
+    }
+
+    public void Activate()
+    {
         bool resultingState = ApplyStateChange();
 
         if (eventEmitter == null)

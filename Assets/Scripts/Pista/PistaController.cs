@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using UnityEngine;
 
 public class PistaController : MonoBehaviour
@@ -28,11 +29,18 @@ public class PistaController : MonoBehaviour
     [SerializeField] private float lanternMoveSpeed = 10f;
     [SerializeField] private float arrivalDistance = 0.05f;
 
+    [Header("Switch Interaction")]
+    [SerializeField] private LayerMask switchInteractionLayers = ~0;
+    [SerializeField] private float switchInteractionRadius = 0.2f;
+
     public PistaState CurrentState { get; private set; } = PistaState.FollowingPlayer;
     public Transform CurrentLanternTarget { get; private set; }
     public Transform CurrentPreviewTarget { get; private set; }
 
     private bool aimStickEngaged;
+    private readonly Collider2D[] switchOverlapResults = new Collider2D[8];
+    private readonly RaycastHit2D[] switchCastResults = new RaycastHit2D[8];
+    private readonly HashSet<int> activatedSwitchesThisTravel = new();
 
     private void Awake()
     {
@@ -98,6 +106,7 @@ public class PistaController : MonoBehaviour
             return;
 
         CurrentLanternTarget = lanternTarget;
+        activatedSwitchesThisTravel.Clear();
         CurrentState = PistaState.MovingToLantern;
     }
 
@@ -106,6 +115,7 @@ public class PistaController : MonoBehaviour
         CurrentLanternTarget = null;
         CurrentPreviewTarget = null;
         aimStickEngaged = false;
+        activatedSwitchesThisTravel.Clear();
         CurrentState = PistaState.FollowingPlayer;
     }
 
@@ -167,11 +177,14 @@ public class PistaController : MonoBehaviour
             return;
         }
 
+        Vector3 previousPosition = transform.position;
         MoveToward(CurrentLanternTarget.position, lanternMoveSpeed);
+        ActivateSwitchesAlongTravel(previousPosition, transform.position);
 
         if ((CurrentLanternTarget.position - transform.position).sqrMagnitude <= arrivalDistance * arrivalDistance)
         {
             transform.position = CurrentLanternTarget.position;
+            ActivateNearbySwitches(transform.position, CreateSwitchContactFilter(), GetSwitchInteractionRadius());
             CurrentState = PistaState.LatchedToLantern;
         }
     }
@@ -190,6 +203,84 @@ public class PistaController : MonoBehaviour
     private void MoveToward(Vector3 targetPosition, float speed)
     {
         transform.position = Vector3.MoveTowards(transform.position, targetPosition, speed * Time.deltaTime);
+    }
+
+    private void ActivateSwitchesAlongTravel(Vector2 startPosition, Vector2 endPosition)
+    {
+        ContactFilter2D contactFilter = CreateSwitchContactFilter();
+        float interactionRadius = GetSwitchInteractionRadius();
+        Vector2 travelDelta = endPosition - startPosition;
+        float travelDistance = travelDelta.magnitude;
+
+        ActivateNearbySwitches(startPosition, contactFilter, interactionRadius);
+
+        if (travelDistance > Mathf.Epsilon)
+        {
+            Vector2 travelDirection = travelDelta / travelDistance;
+            int castHitCount = Physics2D.CircleCast(startPosition, interactionRadius, travelDirection, contactFilter, switchCastResults, travelDistance);
+
+            for (int i = 0; i < castHitCount; i++)
+                ActivateSwitchFromCollider(switchCastResults[i].collider);
+        }
+
+        ActivateNearbySwitches(endPosition, contactFilter, interactionRadius);
+    }
+
+    private void ActivateNearbySwitches(Vector2 position, ContactFilter2D contactFilter, float interactionRadius)
+    {
+        int overlapHitCount = Physics2D.OverlapCircle(position, interactionRadius, contactFilter, switchOverlapResults);
+
+        for (int i = 0; i < overlapHitCount; i++)
+            ActivateSwitchFromCollider(switchOverlapResults[i]);
+    }
+
+    private void ActivateSwitchFromCollider(Collider2D hit)
+    {
+        if (hit == null)
+            return;
+
+        if (!TryGetInteractSwitch(hit, out InteractSwitch interactSwitch, out Component switchComponent))
+            return;
+
+        if (switchComponent == null || !activatedSwitchesThisTravel.Add(switchComponent.GetInstanceID()))
+            return;
+
+        interactSwitch.Activate();
+    }
+
+    private ContactFilter2D CreateSwitchContactFilter()
+    {
+        return new ContactFilter2D
+        {
+            useLayerMask = true,
+            layerMask = switchInteractionLayers,
+            useTriggers = true
+        };
+    }
+
+    private float GetSwitchInteractionRadius()
+    {
+        return Mathf.Max(0.01f, switchInteractionRadius);
+    }
+
+    private static bool TryGetInteractSwitch(Collider2D source, out InteractSwitch interactSwitch, out Component component)
+    {
+        interactSwitch = null;
+        component = null;
+
+        if (source == null)
+            return false;
+
+        component = source.GetComponent<InteractSwitch>();
+        if (component == null)
+            component = source.GetComponentInParent<InteractSwitch>();
+        if (component == null)
+            component = source.GetComponentInChildren<InteractSwitch>();
+        if (component == null)
+            return false;
+
+        interactSwitch = component as InteractSwitch;
+        return interactSwitch != null;
     }
 
     private Transform FindBestLanternTarget(Vector2 aimDirection)
@@ -269,6 +360,9 @@ public class PistaController : MonoBehaviour
             Gizmos.DrawLine(transform.position, CurrentPreviewTarget.position);
             Gizmos.DrawWireSphere(CurrentPreviewTarget.position, 0.18f);
         }
+
+        Gizmos.color = new Color(1f, 0.6f, 0f, 0.4f);
+        Gizmos.DrawWireSphere(transform.position, GetSwitchInteractionRadius());
 
         if (CurrentLanternTarget == null)
             return;

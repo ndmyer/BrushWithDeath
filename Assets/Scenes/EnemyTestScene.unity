@@ -387,6 +387,23 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::DynamicCameraFollow
   target: {fileID: 887717965}
   followDistance: 10
+  targetCamera: {fileID: 0}
+  playerController: {fileID: 0}
+  pistaController: {fileID: 0}
+  positionSmoothTime: 0.12
+  framingPadding: {x: 1.5, y: 1.25}
+  latchedPlayerWeight: 0.7
+  latchedPistaWeight: 0.3
+  movingPlayerWeight: 0.6
+  movingPistaWeight: 0.4
+  aimingPlayerWeight: 0.55
+  aimingPistaWeight: 0.2
+  aimingPreviewWeight: 0.25
+  extraPlayerWeightForNonNormalState: 0.15
+  baseOrthographicSize: 5
+  maxOrthographicSize: 7
+  zoomOutSmoothTime: 0.1
+  zoomInSmoothTime: 0.2
 --- !u!1 &619394800
 GameObject:
   m_ObjectHideFlags: 0
@@ -748,6 +765,12 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::PlayerInteractor
   interactionDistance: 1
   interactionRadius: 0.3
+  guitarHitboxSize: {x: 0.9, y: 1.15}
+  guitarHitboxDistance: 0.75
+  guitarKnockbackAmount: 1
+  guitarHitLayers:
+    serializedVersion: 2
+    m_Bits: 4294967295
 --- !u!61 &887717967
 BoxCollider2D:
   m_ObjectHideFlags: 0
@@ -953,7 +976,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 6035822263903817099, guid: 9507f06dc94fa5545a9df6d868656579, type: 3}
       propertyPath: m_IsActive
-      value: 0
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 6493692634093187764, guid: 9507f06dc94fa5545a9df6d868656579, type: 3}
       propertyPath: m_LocalPosition.x
