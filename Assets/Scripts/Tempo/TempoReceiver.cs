@@ -13,6 +13,7 @@ public class TempoReceiver : MonoBehaviour
     [SerializeField] private TempoBand requiredTempo = TempoBand.Mid;
     [SerializeField] private bool listenToGlobalTempo = true;
     [SerializeField] private TempoService tempoService;
+    [SerializeField] private Collider2D proximityCollider;
     [SerializeField] private PuzzleStateBool targetState;
     [SerializeField] private PuzzleEventEmitter eventEmitter;
     [SerializeField] private bool invertMatchResult;
@@ -21,14 +22,22 @@ public class TempoReceiver : MonoBehaviour
     [SerializeField] private TempoEvent onTempoReceived;
 
     public static IReadOnlyCollection<TempoReceiver> ActiveReceivers => activeReceivers;
+    public TempoBand RequiredTempo => requiredTempo;
+    public bool HasReceivedTempo => hasReceivedTempo;
+    public bool CurrentMatch => currentMatch;
+    public event Action<TempoReceiver, bool> MatchChanged;
 
     private bool hasReceivedTempo;
+    private bool currentMatch;
     private TempoBand lastReceivedTempo = TempoBand.Mid;
 
     private void Awake()
     {
         if (tempoService == null)
             tempoService = TempoService.Instance != null ? TempoService.Instance : FindAnyObjectByType<TempoService>();
+
+        if (proximityCollider == null)
+            proximityCollider = GetComponent<Collider2D>();
 
         if (targetState == null)
             targetState = GetComponent<PuzzleStateBool>();
@@ -41,6 +50,7 @@ public class TempoReceiver : MonoBehaviour
     {
         activeReceivers.Add(this);
         hasReceivedTempo = false;
+        currentMatch = false;
 
         if (!listenToGlobalTempo)
             return;
@@ -75,14 +85,28 @@ public class TempoReceiver : MonoBehaviour
         if (invertMatchResult)
             isMatch = !isMatch;
 
+        bool matchChanged = currentMatch != isMatch;
+        currentMatch = isMatch;
+
         targetState?.SetState(isMatch);
         eventEmitter?.EmitSetState(isMatch);
         onTempoReceived?.Invoke(tempo);
+
+        if (matchChanged)
+            MatchChanged?.Invoke(this, currentMatch);
 
         if (isMatch)
             onTempoMatched?.Invoke();
         else
             onTempoMismatched?.Invoke();
+    }
+
+    public Vector3 GetClosestBroadcastPoint(Vector3 origin)
+    {
+        if (proximityCollider != null && proximityCollider.enabled)
+            return proximityCollider.ClosestPoint(origin);
+
+        return transform.position;
     }
 
     private void HandleTempoUpdated(TempoStateSnapshot snapshot)
