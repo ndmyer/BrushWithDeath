@@ -152,7 +152,7 @@ Rigidbody2D:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 6035822263903817099}
-  m_BodyType: 0
+  m_BodyType: 1
   m_Simulated: 1
   m_UseFullKinematicContacts: 0
   m_UseAutoMass: 0
@@ -189,7 +189,7 @@ MonoBehaviour:
   animator: {fileID: 0}
   hitbox: {fileID: 7537991289465747670}
   moveSpeed: 2.5
-  knockbackAmount: 1
+  knockbackDistance: 1
   damage: 1
   attackSpeed: 1
   attackRange: 1.5
@@ -197,6 +197,10 @@ MonoBehaviour:
   knockbackDuration: 0.12
   deathCleanupDelay: 1.25
   destroyAfterDeath: 1
+  idleWanderRadius: 2
+  idlePauseDurationRange: {x: 1.25, y: 2.5}
+  idleArrivalDistance: 0.1
+  idlePointSampleAttempts: 8
   slowTempo:
     moveSpeedMultiplier: 1
     knockbackMultiplier: 1

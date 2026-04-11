@@ -2,6 +2,7 @@ using System;
 using UnityEngine;
 using UnityEngine.Events;
 using UnityEngine.Serialization;
+using Random = UnityEngine.Random;
 
 [RequireComponent(typeof(Rigidbody2D))]
 [RequireComponent(typeof(Collider2D))]
@@ -33,9 +34,16 @@ public abstract class SkeletonEnemyBase : MonoBehaviour, IKnockbackable
 
     [Header("Behavior")]
     [SerializeField, Min(0f)] private float detectionRange = 6f;
+    [SerializeField, Min(0f)] private float containmentInsetDistance = 0.1f;
     [SerializeField, Min(0.01f)] private float knockbackDuration = 0.12f;
     [SerializeField, Min(0f)] private float deathCleanupDelay = 1.25f;
     [SerializeField] private bool destroyAfterDeath = true;
+
+    [Header("Idle Movement")]
+    [SerializeField, Min(0f)] private float idleWanderRadius = 2f;
+    [SerializeField] private Vector2 idlePauseDurationRange = new Vector2(1.25f, 2.5f);
+    [SerializeField, Min(0f)] private float idleArrivalDistance = 0.1f;
+    [SerializeField, Min(1)] private int idlePointSampleAttempts = 8;
 
     [Header("Tempo")]
     [SerializeField] private TempoStatModifier slowTempo = new();
@@ -54,8 +62,15 @@ public abstract class SkeletonEnemyBase : MonoBehaviour, IKnockbackable
 
     private Vector2 desiredVelocity;
     private Vector2 knockbackVelocity;
+    private Collider2D containmentArea;
+    private Bounds containmentBounds;
+    private Vector2 idleAnchorPosition;
+    private Vector2 idleDestination;
     private float attackCooldownTimer;
+    private float idleWaitTimer;
     private float knockbackTimer;
+    private bool hasIdleDestination;
+    private bool hasContainmentBounds;
 
     protected Transform Target => target;
     protected TempoBand CurrentTempo { get; private set; } = TempoBand.Mid;
@@ -63,6 +78,8 @@ public abstract class SkeletonEnemyBase : MonoBehaviour, IKnockbackable
     protected bool IsDead { get; private set; }
     protected float EffectiveDamage => damage * GetTempoModifier(CurrentTempo).damageMultiplier;
     protected float EffectiveAttackRange => attackRange * GetTempoModifier(CurrentTempo).attackRangeMultiplier;
+
+    public event Action<SkeletonEnemyBase> Died;
 
     protected virtual void Reset()
     {
@@ -72,11 +89,15 @@ public abstract class SkeletonEnemyBase : MonoBehaviour, IKnockbackable
     protected virtual void OnValidate()
     {
         CacheReferences();
+        idlePauseDurationRange.x = Mathf.Max(0f, idlePauseDurationRange.x);
+        idlePauseDurationRange.y = Mathf.Max(idlePauseDurationRange.x, idlePauseDurationRange.y);
     }
 
     protected virtual void Awake()
     {
         CacheReferences();
+        idleAnchorPosition = transform.position;
+        idleWaitTimer = GetIdlePauseDuration();
         ResolveTarget();
     }
 
@@ -115,25 +136,58 @@ public abstract class SkeletonEnemyBase : MonoBehaviour, IKnockbackable
 
         if (!ResolveTarget())
         {
-            desiredVelocity = Vector2.zero;
-            UpdateAnimator(Vector2.zero);
+            TickIdleMovement((Vector2)transform.position);
+            UpdateAnimator(desiredVelocity);
             return;
         }
 
-        Vector2 toTarget = (Vector2)(target.position - transform.position);
-        float distanceToTarget = toTarget.magnitude;
+        Vector2 targetPosition = target.position;
+        Vector2 currentPosition = transform.position;
+        Vector2 toActualTarget = targetPosition - currentPosition;
+        float distanceToActualTarget = toActualTarget.magnitude;
 
-        if (distanceToTarget > Mathf.Epsilon)
-            FacingDirection = DirectionUtility.ToCardinal(toTarget);
-
-        if (detectionRange > 0f && distanceToTarget > detectionRange)
+        if (HasContainment() && !IsInsideContainment(currentPosition))
         {
-            desiredVelocity = Vector2.zero;
-            UpdateAnimator(Vector2.zero);
+            Vector2 returnTarget = GetContainedPosition(currentPosition, idleAnchorPosition);
+            Vector2 toReturnTarget = returnTarget - currentPosition;
+
+            desiredVelocity = toReturnTarget.sqrMagnitude > Mathf.Epsilon
+                ? toReturnTarget.normalized * GetMoveSpeed()
+                : Vector2.zero;
+
+            UpdateAnimator(desiredVelocity);
             return;
         }
 
-        TickBehavior(toTarget, distanceToTarget);
+        bool targetInDetectionRange = detectionRange <= 0f || distanceToActualTarget <= detectionRange;
+        if (!targetInDetectionRange)
+        {
+            TickIdleMovement(currentPosition);
+            UpdateAnimator(desiredVelocity);
+            return;
+        }
+
+        bool targetOutsideContainment = HasContainment() && !IsInsideContainment(targetPosition);
+        Vector2 pursuitTarget = HasContainment()
+            ? GetContainedPosition(targetPosition, currentPosition)
+            : targetPosition;
+
+        if (targetOutsideContainment && HasReachedPoint(currentPosition, pursuitTarget))
+        {
+            TriggerIdleWaitIfNeeded();
+            TickIdleMovement(currentPosition);
+            UpdateAnimator(desiredVelocity);
+            return;
+        }
+
+        if (distanceToActualTarget > Mathf.Epsilon)
+            FacingDirection = DirectionUtility.ToCardinal(toActualTarget);
+
+        hasIdleDestination = false;
+        idleWaitTimer = 0f;
+        Vector2 toPursuitTarget = pursuitTarget - currentPosition;
+
+        TickBehavior(toPursuitTarget, toActualTarget, distanceToActualTarget);
         UpdateAnimator(desiredVelocity);
     }
 
@@ -206,9 +260,31 @@ public abstract class SkeletonEnemyBase : MonoBehaviour, IKnockbackable
         }
 
         onDeath?.Invoke();
+        Died?.Invoke(this);
 
         if (destroyAfterDeath)
             Destroy(gameObject, deathCleanupDelay);
+    }
+
+    public void SetContainmentArea(Collider2D area)
+    {
+        containmentArea = area;
+        hasContainmentBounds = false;
+        idleAnchorPosition = GetContainedPosition(idleAnchorPosition, (Vector2)transform.position);
+    }
+
+    public void SetContainmentBounds(Bounds bounds)
+    {
+        containmentArea = null;
+        containmentBounds = bounds;
+        hasContainmentBounds = true;
+        idleAnchorPosition = GetContainedPosition(idleAnchorPosition, (Vector2)transform.position);
+    }
+
+    public void ClearContainmentBounds()
+    {
+        containmentArea = null;
+        hasContainmentBounds = false;
     }
 
     protected bool TryGetDamageableTarget(out IDamageable damageable)
@@ -216,12 +292,12 @@ public abstract class SkeletonEnemyBase : MonoBehaviour, IKnockbackable
         return TryGetInterface(target, out damageable);
     }
 
-    protected virtual void TickBehavior(Vector2 toTarget, float distanceToTarget)
+    protected virtual void TickBehavior(Vector2 toPursuitTarget, Vector2 toActualTarget, float actualDistanceToTarget)
     {
-        if (distanceToTarget > EffectiveAttackRange)
+        if (actualDistanceToTarget > EffectiveAttackRange)
         {
-            desiredVelocity = toTarget.sqrMagnitude > Mathf.Epsilon
-                ? toTarget.normalized * GetMoveSpeed()
+            desiredVelocity = toPursuitTarget.sqrMagnitude > Mathf.Epsilon
+                ? toPursuitTarget.normalized * GetMoveSpeed()
                 : Vector2.zero;
             return;
         }
@@ -231,8 +307,8 @@ public abstract class SkeletonEnemyBase : MonoBehaviour, IKnockbackable
         if (attackCooldownTimer > 0f)
             return;
 
-        Vector2 attackDirection = toTarget.sqrMagnitude > Mathf.Epsilon ? toTarget.normalized : FacingDirection;
-        if (!PerformAttack(attackDirection, distanceToTarget))
+        Vector2 attackDirection = toActualTarget.sqrMagnitude > Mathf.Epsilon ? toActualTarget.normalized : FacingDirection;
+        if (!PerformAttack(attackDirection, actualDistanceToTarget))
             return;
 
         attackCooldownTimer = GetAttackCooldown();
@@ -346,6 +422,187 @@ public abstract class SkeletonEnemyBase : MonoBehaviour, IKnockbackable
     private float GetMoveSpeed()
     {
         return moveSpeed * GetTempoModifier(CurrentTempo).moveSpeedMultiplier;
+    }
+
+    private float GetIdlePauseDuration()
+    {
+        return Random.Range(idlePauseDurationRange.x, idlePauseDurationRange.y);
+    }
+
+    private void TriggerIdleWaitIfNeeded()
+    {
+        if (hasIdleDestination || idleWaitTimer > 0f)
+            return;
+
+        desiredVelocity = Vector2.zero;
+        idleWaitTimer = GetIdlePauseDuration();
+    }
+
+    private bool HasContainment()
+    {
+        return containmentArea != null || hasContainmentBounds;
+    }
+
+    private void TickIdleMovement(Vector2 currentPosition)
+    {
+        if (hasIdleDestination)
+        {
+            Vector2 toDestination = idleDestination - currentPosition;
+            float arrivalDistance = Mathf.Max(0.01f, idleArrivalDistance);
+
+            if (toDestination.sqrMagnitude <= arrivalDistance * arrivalDistance)
+            {
+                hasIdleDestination = false;
+                idleWaitTimer = GetIdlePauseDuration();
+                desiredVelocity = Vector2.zero;
+                return;
+            }
+
+            desiredVelocity = toDestination.normalized * GetMoveSpeed();
+            if (desiredVelocity.sqrMagnitude > Mathf.Epsilon)
+                FacingDirection = DirectionUtility.ToCardinal(desiredVelocity);
+
+            return;
+        }
+
+        if (idleWaitTimer > 0f)
+        {
+            idleWaitTimer -= Time.deltaTime;
+            desiredVelocity = Vector2.zero;
+            return;
+        }
+
+        if (!TryGetIdleDestination(currentPosition, out Vector2 destination))
+        {
+            idleWaitTimer = GetIdlePauseDuration();
+            desiredVelocity = Vector2.zero;
+            return;
+        }
+
+        idleDestination = destination;
+        hasIdleDestination = true;
+
+        Vector2 toNewDestination = idleDestination - currentPosition;
+        desiredVelocity = toNewDestination.sqrMagnitude > Mathf.Epsilon
+            ? toNewDestination.normalized * GetMoveSpeed()
+            : Vector2.zero;
+
+        if (desiredVelocity.sqrMagnitude > Mathf.Epsilon)
+            FacingDirection = DirectionUtility.ToCardinal(desiredVelocity);
+    }
+
+    private bool TryGetIdleDestination(Vector2 currentPosition, out Vector2 destination)
+    {
+        destination = currentPosition;
+
+        if (idleWanderRadius <= Mathf.Epsilon)
+            return false;
+
+        Vector2 anchor = HasContainment()
+            ? GetContainedPosition(idleAnchorPosition, currentPosition)
+            : idleAnchorPosition;
+        float minimumTravelDistance = Mathf.Max(0.01f, idleArrivalDistance * 2f);
+
+        for (int i = 0; i < idlePointSampleAttempts; i++)
+        {
+            Vector2 candidate = anchor + Random.insideUnitCircle * idleWanderRadius;
+
+            if (HasContainment() && !IsInsideContainment(candidate))
+                continue;
+
+            if ((candidate - currentPosition).sqrMagnitude < minimumTravelDistance * minimumTravelDistance)
+                continue;
+
+            destination = candidate;
+            return true;
+        }
+
+        return false;
+    }
+
+    private bool HasReachedPoint(Vector2 currentPosition, Vector2 destination)
+    {
+        float arrivalDistance = Mathf.Max(0.01f, idleArrivalDistance);
+        return (destination - currentPosition).sqrMagnitude <= arrivalDistance * arrivalDistance;
+    }
+
+    private Vector2 GetContainedPosition(Vector2 worldPosition, Vector2 interiorReference)
+    {
+        if (containmentArea != null)
+            return GetContainedPositionInArea(worldPosition, interiorReference);
+
+        return GetContainedPositionInBounds(worldPosition);
+    }
+
+    private bool IsInsideContainment(Vector2 worldPosition)
+    {
+        if (containmentArea != null)
+            return containmentArea.OverlapPoint(worldPosition);
+
+        Vector3 point = new Vector3(worldPosition.x, worldPosition.y, containmentBounds.center.z);
+        return containmentBounds.Contains(point);
+    }
+
+    private Vector2 GetContainedPositionInArea(Vector2 worldPosition, Vector2 interiorReference)
+    {
+        if (containmentArea == null || containmentArea.OverlapPoint(worldPosition))
+            return worldPosition;
+
+        Vector2 boundaryPoint = containmentArea.ClosestPoint(worldPosition);
+        Vector2 referencePoint = GetValidContainmentReference(interiorReference);
+        if (!containmentArea.OverlapPoint(referencePoint))
+            return boundaryPoint;
+
+        Vector2 toReference = referencePoint - boundaryPoint;
+        if (toReference.sqrMagnitude <= Mathf.Epsilon)
+            return referencePoint;
+
+        float insetDistance = Mathf.Max(0.01f, containmentInsetDistance);
+        Vector2 insetPoint = boundaryPoint + toReference.normalized * insetDistance;
+        if (containmentArea.OverlapPoint(insetPoint))
+            return insetPoint;
+
+        Vector2 nearestInsidePoint = referencePoint;
+        Vector2 nearestOutsidePoint = boundaryPoint;
+
+        for (int i = 0; i < 8; i++)
+        {
+            Vector2 midpoint = Vector2.Lerp(nearestOutsidePoint, nearestInsidePoint, 0.5f);
+            if (containmentArea.OverlapPoint(midpoint))
+                nearestInsidePoint = midpoint;
+            else
+                nearestOutsidePoint = midpoint;
+        }
+
+        return nearestInsidePoint;
+    }
+
+    private Vector2 GetContainedPositionInBounds(Vector2 worldPosition)
+    {
+        float insetX = Mathf.Min(Mathf.Max(0f, containmentInsetDistance), containmentBounds.extents.x);
+        float insetY = Mathf.Min(Mathf.Max(0f, containmentInsetDistance), containmentBounds.extents.y);
+
+        return new Vector2(
+            Mathf.Clamp(worldPosition.x, containmentBounds.min.x + insetX, containmentBounds.max.x - insetX),
+            Mathf.Clamp(worldPosition.y, containmentBounds.min.y + insetY, containmentBounds.max.y - insetY));
+    }
+
+    private Vector2 GetValidContainmentReference(Vector2 preferredReference)
+    {
+        if (containmentArea == null)
+            return preferredReference;
+
+        if (containmentArea.OverlapPoint(preferredReference))
+            return preferredReference;
+
+        if (containmentArea.OverlapPoint(idleAnchorPosition))
+            return idleAnchorPosition;
+
+        Vector2 currentPosition = transform.position;
+        if (containmentArea.OverlapPoint(currentPosition))
+            return currentPosition;
+
+        return preferredReference;
     }
 
     private float GetAttackCooldown()
