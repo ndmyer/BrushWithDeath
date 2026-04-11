@@ -367,12 +367,6 @@ public abstract class SkeletonEnemyBase : MonoBehaviour, IKnockbackable
 
     private void HandleTempoUpdated(TempoStateSnapshot snapshot)
     {
-        if (snapshot.UpdateType != TempoUpdateType.Initialized &&
-            snapshot.UpdateType != TempoUpdateType.ChannelCompleted)
-        {
-            return;
-        }
-
         CurrentTempo = snapshot.CurrentTempo;
     }
 
