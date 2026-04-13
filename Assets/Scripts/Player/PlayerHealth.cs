@@ -66,6 +66,15 @@ public class PlayerHealth : MonoBehaviour
         return true;
     }
 
+    public bool Heal(float amount)
+    {
+        if (IsDead || amount <= 0f || CurrentHealth >= maxHealth)
+            return false;
+
+        SetCurrentHealth(CurrentHealth + amount);
+        return true;
+    }
+
     public void RestoreFullHealth()
     {
         SetCurrentHealth(maxHealth);
