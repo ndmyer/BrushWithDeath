@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using Random = UnityEngine.Random;
 
 [DisallowMultipleComponent]
 public class EnemySpawnZone : MonoBehaviour
@@ -27,9 +28,15 @@ public class EnemySpawnZone : MonoBehaviour
     [Header("Respawn")]
     [SerializeField, Min(0f)] private float respawnDelay = 2f;
 
+    [Header("Tempo")]
+    [SerializeField] private TempoService tempoService;
+    [SerializeField, Min(0f)] private float tempoChangeInterval = 10f;
+
     private readonly List<SkeletonEnemyBase> activeEnemies = new List<SkeletonEnemyBase>();
     private Coroutine refillRoutine;
     private bool hasStarted;
+    private Transform playerTransform;
+    private float tempoChangeTimer;
     private int totalSpawnedEnemies;
 
     private void Reset()
@@ -40,6 +47,8 @@ public class EnemySpawnZone : MonoBehaviour
 
     private void OnEnable()
     {
+        tempoChangeTimer = tempoChangeInterval;
+
         for (int i = 0; i < activeEnemies.Count; i++)
         {
             if (activeEnemies[i] == null)
@@ -63,6 +72,9 @@ public class EnemySpawnZone : MonoBehaviour
 
         if (areaShape == null)
             areaShape = GetComponent<Collider2D>();
+
+        if (tempoService == null)
+            tempoService = TempoService.Instance != null ? TempoService.Instance : FindAnyObjectByType<TempoService>();
     }
 
     private void OnDisable()
@@ -79,11 +91,18 @@ public class EnemySpawnZone : MonoBehaviour
     private void Start()
     {
         hasStarted = true;
+        ResolveTempoService();
+        ResolvePlayerTransform();
 
         if (!spawnOnStart)
             return;
 
         SpawnToCurrentLimit();
+    }
+
+    private void Update()
+    {
+        TickTempoCycling();
     }
 
     public void SpawnToCurrentLimit()
@@ -263,6 +282,91 @@ public class EnemySpawnZone : MonoBehaviour
     private bool HasAreaShape()
     {
         return areaShape != null;
+    }
+
+    private void TickTempoCycling()
+    {
+        if (!ResolveTempoService() || !ResolvePlayerTransform())
+            return;
+
+        if (!IsPlayerInsideZone())
+        {
+            tempoChangeTimer = tempoChangeInterval;
+            return;
+        }
+
+        if (tempoService.IsChanneling)
+            return;
+
+        if (tempoChangeTimer > 0f)
+            tempoChangeTimer -= Time.deltaTime;
+
+        if (tempoChangeTimer > 0f)
+            return;
+
+        if (tempoService.BeginChannel(GetRandomNextTempo(tempoService.CurrentTempo)))
+            tempoChangeTimer = tempoChangeInterval;
+    }
+
+    private bool ResolveTempoService()
+    {
+        if (tempoService != null)
+            return true;
+
+        tempoService = TempoService.Instance != null ? TempoService.Instance : FindAnyObjectByType<TempoService>();
+        return tempoService != null;
+    }
+
+    private bool ResolvePlayerTransform()
+    {
+        if (playerTransform != null)
+            return true;
+
+        PlayerDamageReceiver damageReceiver = FindAnyObjectByType<PlayerDamageReceiver>();
+        if (damageReceiver != null)
+        {
+            playerTransform = damageReceiver.transform;
+            return true;
+        }
+
+        PlayerController playerController = FindAnyObjectByType<PlayerController>();
+        if (playerController != null)
+        {
+            playerTransform = playerController.transform;
+            return true;
+        }
+
+        return false;
+    }
+
+    private bool IsPlayerInsideZone()
+    {
+        return playerTransform != null && IsPointInsideSpawnArea(playerTransform.position);
+    }
+
+    private TempoBand GetRandomNextTempo(TempoBand currentTempo)
+    {
+        TempoBand[] candidates = new TempoBand[3];
+        int candidateIndex = 0;
+
+        AddTempoCandidate(TempoBand.Slow, currentTempo, candidates, ref candidateIndex);
+        AddTempoCandidate(TempoBand.Mid, currentTempo, candidates, ref candidateIndex);
+        AddTempoCandidate(TempoBand.Fast, currentTempo, candidates, ref candidateIndex);
+        AddTempoCandidate(TempoBand.Intense, currentTempo, candidates, ref candidateIndex);
+
+        if (candidateIndex == 0)
+            return currentTempo;
+
+        return candidates[Random.Range(0, candidateIndex)];
+    }
+
+    private static void AddTempoCandidate(TempoBand candidate, TempoBand currentTempo, TempoBand[] candidates, ref int candidateIndex)
+    {
+        if (candidate == currentTempo)
+            return;
+
+        candidates[candidateIndex] = candidate;
+        candidateIndex++;
     }
 
     private bool IsSpawnPointValid(Vector2 point)
