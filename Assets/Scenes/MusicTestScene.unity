@@ -684,6 +684,7 @@ GameObject:
   - component: {fileID: 887717969}
   - component: {fileID: 887717968}
   - component: {fileID: 887717970}
+  - component: {fileID: 887717971}
   m_Layer: 0
   m_Name: Player
   m_TagString: Untagged
@@ -1002,6 +1003,18 @@ MonoBehaviour:
   onHealthChanged:
     m_PersistentCalls:
       m_Calls: []
+--- !u!114 &887717971
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 887717958}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7c3e8d5a3b6a4d42b8bba12c8d1f7e11, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::PlayerProgression
 --- !u!1 &1276950598
 GameObject:
   m_ObjectHideFlags: 0
@@ -1192,7 +1205,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::TempoMusicDirector
   tempoService: {fileID: 1608435383}
   musicMixerGroup: {fileID: 9079058411204391138, guid: 18aa586d3ae16bb4fac764362ccf9003, type: 2}
-  defaultMusicSet: {fileID: 11400000, guid: 5c79b503a8c53e24fa8c3d2c43224c83, type: 2}
+  defaultMusicSet: {fileID: 11400000, guid: 521da41e1cd2fb14da75cc1953780ca5, type: 2}
   playDefaultOnEnable: 1
   defaultSetTransitionDuration: 1
   masterVolume: 1

@@ -192,8 +192,9 @@ MonoBehaviour:
   knockbackDistance: 1
   damage: 1
   attackSpeed: 1
-  attackRange: 1.5
+  attackRange: 1.36
   detectionRange: 6
+  containmentInsetDistance: 0.1
   knockbackDuration: 0.12
   deathCleanupDelay: 1.25
   destroyAfterDeath: 1

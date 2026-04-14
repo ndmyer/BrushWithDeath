@@ -1,0 +1,24 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 37dca9f0f8b4e7c47be99e4d535bad67, type: 3}
+  m_Name: MainTempoSet
+  m_EditorClassIdentifier: Assembly-CSharp::TempoMusicSet
+  mainLoop: {fileID: 8300000, guid: 2b4f7689039373d4db4fa75765e01990, type: 3}
+  mainVolume: 0.75
+  slowLayer: {fileID: 8300000, guid: 59e3fab481482e64f839527e11f511f2, type: 3}
+  slowVolume: 1
+  midLayer: {fileID: 8300000, guid: cf42b57fdce16484cab0a3c37157e4e5, type: 3}
+  midVolume: 1
+  fastLayer: {fileID: 8300000, guid: bc92113a817cc57428d5cce56537757e, type: 3}
+  fastVolume: 1
+  intenseLayer: {fileID: 8300000, guid: 6fbc46dcdea29e2489a9a87ab582e0c2, type: 3}
+  intenseVolume: 1

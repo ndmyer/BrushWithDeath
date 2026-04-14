@@ -192,14 +192,19 @@ MonoBehaviour:
   animator: {fileID: 0}
   hitbox: {fileID: 1584431731322517496}
   moveSpeed: 2.5
-  knockbackAmount: 1
+  knockbackDistance: 1
   damage: 1
   attackSpeed: 1
-  attackRange: 1.25
+  attackRange: 2.83
   detectionRange: 6
+  containmentInsetDistance: 0.1
   knockbackDuration: 0.12
   deathCleanupDelay: 1.25
   destroyAfterDeath: 1
+  idleWanderRadius: 2
+  idlePauseDurationRange: {x: 1.25, y: 2.5}
+  idleArrivalDistance: 0.1
+  idlePointSampleAttempts: 8
   slowTempo:
     moveSpeedMultiplier: 1
     knockbackMultiplier: 1

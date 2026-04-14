@@ -821,6 +821,7 @@ GameObject:
   - component: {fileID: 887717968}
   - component: {fileID: 887717969}
   - component: {fileID: 887717970}
+  - component: {fileID: 887717971}
   m_Layer: 0
   m_Name: Player
   m_TagString: Untagged
@@ -1139,6 +1140,18 @@ MonoBehaviour:
   onHealthChanged:
     m_PersistentCalls:
       m_Calls: []
+--- !u!114 &887717971
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 887717958}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7c3e8d5a3b6a4d42b8bba12c8d1f7e11, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::PlayerProgression
 --- !u!1001 &1601259841
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -1352,6 +1365,14 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 0}
     m_Modifications:
+    - target: {fileID: 3211111584412955882, guid: a63e132f301bab14f8b48a2ff7c7f609, type: 3}
+      propertyPath: m_Points.m_Paths.Array.data[0].Array.data[4].x
+      value: 1.1264482
+      objectReference: {fileID: 0}
+    - target: {fileID: 3211111584412955882, guid: a63e132f301bab14f8b48a2ff7c7f609, type: 3}
+      propertyPath: m_Points.m_Paths.Array.data[0].Array.data[4].y
+      value: -2.02321
+      objectReference: {fileID: 0}
     - target: {fileID: 3592178412909432300, guid: a63e132f301bab14f8b48a2ff7c7f609, type: 3}
       propertyPath: m_LocalPosition.x
       value: 0.6702
@@ -1395,6 +1416,14 @@ PrefabInstance:
     - target: {fileID: 6676776310009746256, guid: a63e132f301bab14f8b48a2ff7c7f609, type: 3}
       propertyPath: m_Name
       value: EnemySpawnZone
+      objectReference: {fileID: 0}
+    - target: {fileID: 7358630468200038828, guid: a63e132f301bab14f8b48a2ff7c7f609, type: 3}
+      propertyPath: tempoService
+      value: 
+      objectReference: {fileID: 1608435383}
+    - target: {fileID: 7358630468200038828, guid: a63e132f301bab14f8b48a2ff7c7f609, type: 3}
+      propertyPath: tempoChangeInterval
+      value: 5
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
