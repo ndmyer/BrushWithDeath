@@ -21,7 +21,10 @@ public class DialogueBoxUI : MonoBehaviour
     [Header("Timing")]
     [SerializeField, Min(0.5f)] private float defaultDisplayDuration = 3.5f;
 
-    private Coroutine hideRoutine;
+    [Header("Typewriter")]
+    [SerializeField, Min(1f)] private float typewriterCharactersPerSecond = 40f;
+
+    private Coroutine displayRoutine;
 
     public static DialogueBoxUI Instance
     {
@@ -52,14 +55,14 @@ public class DialogueBoxUI : MonoBehaviour
         CacheReferences();
     }
 
-    public void ShowSign(string message, Sprite portraitOverride = null, float duration = -1f)
+    public void ShowSign(string message, Sprite portraitOverride = null, float duration = -1f, bool useTypewriter = false)
     {
-        Show(message, portraitOverride != null ? portraitOverride : GetDefaultSignPortrait(), duration);
+        Show(message, portraitOverride != null ? portraitOverride : GetDefaultSignPortrait(), duration, useTypewriter);
     }
 
-    public void ShowPista(string message, Sprite portraitOverride = null, float duration = -1f)
+    public void ShowPista(string message, Sprite portraitOverride = null, float duration = -1f, bool useTypewriter = true)
     {
-        Show(message, portraitOverride != null ? portraitOverride : GetDefaultPistaPortrait(), duration);
+        Show(message, portraitOverride != null ? portraitOverride : GetDefaultPistaPortrait(), duration, useTypewriter);
     }
 
     public Sprite GetDefaultSignPortrait()
@@ -85,16 +88,19 @@ public class DialogueBoxUI : MonoBehaviour
 
     public void HideImmediate()
     {
-        if (hideRoutine != null)
+        if (displayRoutine != null)
         {
-            StopCoroutine(hideRoutine);
-            hideRoutine = null;
+            StopCoroutine(displayRoutine);
+            displayRoutine = null;
         }
+
+        if (dialogueText != null)
+            dialogueText.maxVisibleCharacters = int.MaxValue;
 
         SetVisible(false);
     }
 
-    private void Show(string message, Sprite portrait, float duration)
+    private void Show(string message, Sprite portrait, float duration, bool useTypewriter)
     {
         CacheReferences();
 
@@ -104,7 +110,7 @@ public class DialogueBoxUI : MonoBehaviour
             return;
         }
 
-        if (!TrySetDialogueText(message))
+        if (!CanDisplayText(message))
         {
             Debug.LogWarning("DialogueBoxUI is missing a TextMeshProUGUI reference.", this);
             return;
@@ -119,17 +125,25 @@ public class DialogueBoxUI : MonoBehaviour
 
         SetVisible(true);
 
-        if (hideRoutine != null)
-            StopCoroutine(hideRoutine);
-
         float resolvedDuration = duration > 0f ? duration : defaultDisplayDuration;
-        hideRoutine = StartCoroutine(HideAfterSeconds(resolvedDuration));
+        if (displayRoutine != null)
+            StopCoroutine(displayRoutine);
+
+        displayRoutine = StartCoroutine(DisplayRoutine(message, resolvedDuration, useTypewriter));
     }
 
-    private IEnumerator HideAfterSeconds(float duration)
+    private IEnumerator DisplayRoutine(string message, float duration, bool useTypewriter)
     {
+        dialogueText.text = message;
+        dialogueText.maxVisibleCharacters = int.MaxValue;
+
+        if (useTypewriter)
+            yield return PlayTypewriter(message);
+
         yield return new WaitForSecondsRealtime(duration);
-        HideImmediate();
+
+        displayRoutine = null;
+        SetVisible(false);
     }
 
     private void CacheReferences()
@@ -151,16 +165,37 @@ public class DialogueBoxUI : MonoBehaviour
             portraitImage = GetComponentInChildren<Image>(true);
     }
 
-    private bool TrySetDialogueText(string message)
+    private bool CanDisplayText(string message)
     {
         if (string.IsNullOrWhiteSpace(message))
             return false;
 
-        if (dialogueText == null)
-            return false;
+        return dialogueText != null;
+    }
 
+    private IEnumerator PlayTypewriter(string message)
+    {
         dialogueText.text = message;
-        return true;
+        dialogueText.ForceMeshUpdate();
+
+        int totalCharacters = dialogueText.textInfo.characterCount;
+        if (totalCharacters <= 0)
+        {
+            dialogueText.maxVisibleCharacters = int.MaxValue;
+            yield break;
+        }
+
+        dialogueText.maxVisibleCharacters = 0;
+
+        float revealedCharacters = 0f;
+        while (dialogueText.maxVisibleCharacters < totalCharacters)
+        {
+            revealedCharacters += typewriterCharactersPerSecond * Time.unscaledDeltaTime;
+            dialogueText.maxVisibleCharacters = Mathf.Clamp(Mathf.FloorToInt(revealedCharacters), 0, totalCharacters);
+            yield return null;
+        }
+
+        dialogueText.maxVisibleCharacters = int.MaxValue;
     }
 
     private void SetVisible(bool isVisible)

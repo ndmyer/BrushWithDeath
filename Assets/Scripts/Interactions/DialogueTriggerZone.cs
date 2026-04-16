@@ -6,6 +6,7 @@ public class DialogueTriggerZone : MonoBehaviour
 {
     [SerializeField, TextArea(2, 6)] private string dialogueText = "Pista has something to say.";
     [SerializeField] private Sprite portraitOverride;
+    [SerializeField] private bool useTypewriter = true;
     [SerializeField, Min(0.5f)] private float displayDuration = 3.5f;
 
     private bool hasTriggered;
@@ -34,7 +35,13 @@ public class DialogueTriggerZone : MonoBehaviour
             return;
 
         DialogueBoxUI dialogueBox = DialogueBoxUI.Instance;
-        dialogueBox.ShowPista(dialogueText, ResolvePortrait(dialogueBox), displayDuration);
+        if (dialogueBox == null)
+        {
+            Debug.LogWarning("No DialogueBoxUI exists in the loaded scene.", this);
+            return;
+        }
+
+        dialogueBox.ShowPista(dialogueText, ResolvePortrait(dialogueBox), displayDuration, useTypewriter);
         hasTriggered = true;
     }
 

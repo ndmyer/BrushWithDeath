@@ -322,6 +322,7 @@ MonoBehaviour:
   defaultSignPortrait: {fileID: 6791190734153182841, guid: 487de8756e40c9943aff1ad2738f19e4, type: 3}
   defaultPistaPortrait: {fileID: 5292914565219399551, guid: 804c621b324c94f4ab8d3d24e45f65d5, type: 3}
   defaultDisplayDuration: 3.5
+  typewriterCharactersPerSecond: 25
 --- !u!225 &2376551760139632806
 CanvasGroup:
   m_ObjectHideFlags: 0
@@ -391,8 +392,8 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: 0, y: 0}
-  m_SizeDelta: {x: 200, y: 50}
+  m_AnchoredPosition: {x: 54, y: -2.5}
+  m_SizeDelta: {x: 311.5244, y: 59.7686}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!222 &1907921027333230005
 CanvasRenderer:
@@ -424,15 +425,15 @@ MonoBehaviour:
       m_Calls: []
   m_text: Hello test
   m_isRightToLeft: 0
-  m_fontAsset: {fileID: 11400000, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
-  m_sharedMaterial: {fileID: 2180264, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
+  m_fontAsset: {fileID: 11400000, guid: 750a8639d63cc79419a322af41660bca, type: 2}
+  m_sharedMaterial: {fileID: -5831741011263473664, guid: 750a8639d63cc79419a322af41660bca, type: 2}
   m_fontSharedMaterials: []
   m_fontMaterial: {fileID: 0}
   m_fontMaterials: []
   m_fontColor32:
     serializedVersion: 2
-    rgba: 4278190080
-  m_fontColor: {r: 0, g: 0, b: 0, a: 1}
+    rgba: 4294967295
+  m_fontColor: {r: 1, g: 1, b: 1, a: 1}
   m_enableVertexGradient: 0
   m_colorMode: 3
   m_fontColorGradient:
@@ -528,7 +529,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0.5}
   m_AnchorMax: {x: 0, y: 0.5}
-  m_AnchoredPosition: {x: 28, y: 0}
+  m_AnchoredPosition: {x: 35, y: 0}
   m_SizeDelta: {x: 100, y: 100}
   m_Pivot: {x: 0, y: 0.5}
 --- !u!222 &2016669424013101255
