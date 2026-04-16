@@ -81,7 +81,7 @@ SpriteRenderer:
   m_SortingLayer: 0
   m_SortingOrder: 0
   m_MaskInteraction: 0
-  m_Sprite: {fileID: 2800598846208496634, guid: 66b208436af18ab4ebe3f6db71ded784, type: 3}
+  m_Sprite: {fileID: -5727628899253947697, guid: 22f686216e7b9cd4a898daa0802b0951, type: 3}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_FlipX: 0
   m_FlipY: 0
@@ -122,8 +122,8 @@ Transform:
   m_GameObject: {fileID: 7111201867799467483}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 2.48, y: -1.17, z: 0}
-  m_LocalScale: {x: 2, y: 2, z: 1}
+  m_LocalPosition: {x: 2.48, y: -1.14, z: 0}
+  m_LocalScale: {x: 4, y: 4, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 7367164315314514367}
@@ -178,7 +178,7 @@ SpriteRenderer:
   m_SortingLayer: 0
   m_SortingOrder: 0
   m_MaskInteraction: 0
-  m_Sprite: {fileID: 7581446157925264221, guid: f9fa229434fa3cf4ebac589287b75ec0, type: 3}
+  m_Sprite: {fileID: 2715001180037250104, guid: 22f686216e7b9cd4a898daa0802b0951, type: 3}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_FlipX: 0
   m_FlipY: 0
@@ -222,8 +222,8 @@ CircleCollider2D:
   m_UsedByEffector: 0
   m_CompositeOperation: 0
   m_CompositeOrder: 0
-  m_Offset: {x: 0, y: 0}
-  m_Radius: 0.29
+  m_Offset: {x: 0.0029689148, y: -0.028501756}
+  m_Radius: 0.11483299
 --- !u!114 &7239390715194294953
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -308,10 +308,25 @@ MonoBehaviour:
   stateVisuals: {fileID: 5123480367621768494}
   eventEmitter: {fileID: 7078459508044026895}
   targetRenderer: {fileID: 8149721819033081317}
+  animatedVisualRenderer: {fileID: 2342212879728439080}
   startsLit: 0
   toggleOnLight: 1
   unlitColor: {r: 0.25, g: 0.25, b: 0.25, a: 1}
   litColor: {r: 1, g: 0.6, b: 0.15, a: 1}
+  litAnimationFrames:
+  - {fileID: 2715001180037250104, guid: 22f686216e7b9cd4a898daa0802b0951, type: 3}
+  - {fileID: 711199737127299612, guid: 22f686216e7b9cd4a898daa0802b0951, type: 3}
+  - {fileID: 7072940954575020296, guid: 22f686216e7b9cd4a898daa0802b0951, type: 3}
+  - {fileID: -4896548736703509426, guid: 22f686216e7b9cd4a898daa0802b0951, type: 3}
+  - {fileID: 8881395238939430479, guid: 22f686216e7b9cd4a898daa0802b0951, type: 3}
+  - {fileID: -904008221590329575, guid: 22f686216e7b9cd4a898daa0802b0951, type: 3}
+  - {fileID: 8883531919483779965, guid: 22f686216e7b9cd4a898daa0802b0951, type: 3}
+  - {fileID: -5727628899253947697, guid: 22f686216e7b9cd4a898daa0802b0951, type: 3}
+  litAnimationFramesPerSecond: 8
+  possessedSpriteFallback: {fileID: -1306264728780442735, guid: 3ffeea94189e2ff4a87b4b1554f8e51b, type: 3}
+  possessedAnimationFrames: []
+  possessedAnimationFramesPerSecond: 8
+  pistaController: {fileID: 0}
   onLit:
     m_PersistentCalls:
       m_Calls: []

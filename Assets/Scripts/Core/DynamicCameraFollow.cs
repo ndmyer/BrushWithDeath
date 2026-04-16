@@ -152,7 +152,7 @@ public class DynamicCameraFollow : MonoBehaviour
 
         switch (pistaController.CurrentState)
         {
-            case PistaController.PistaState.MovingToLantern:
+            case PistaController.PistaState.Traveling:
                 focusTargets[0] = new FocusTarget(target.position, movingPlayerWeight + playerWeightBonus);
                 AddFocusTarget(ref focusTargetCount, pistaController.transform.position, movingPistaWeight);
                 return focusTargetCount;

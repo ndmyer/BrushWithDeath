@@ -7,13 +7,27 @@ public class PistaController : MonoBehaviour
     {
         FollowingPlayer,
         Aiming,
-        MovingToLantern,
+        Traveling,
         LatchedToLantern
     }
 
+    private enum TravelDestination
+    {
+        None,
+        Player,
+        Lantern
+    }
+
     [Header("References")]
-    [SerializeField] private Transform playerTarget;
     [SerializeField] private LayerMask obstacleLayers;
+    [SerializeField] private SpriteRenderer travelSpriteRenderer;
+    [SerializeField] private SpriteRenderer explosionSpriteRenderer;
+    [SerializeField] private TrailRenderer[] travelTrails;
+    [SerializeField] private ParticleSystem[] travelParticleEffects;
+
+    [Header("Pulse Attack Visuals")]
+    [SerializeField] private Sprite[] pulseAttackAnimationFrames;
+    [SerializeField, Min(0f)] private float pulseAttackAnimationFramesPerSecond = 16f;
 
     [Header("Follow")]
     [SerializeField] private Vector2 followOffset = new Vector2(0.75f, 0f);
@@ -41,8 +55,16 @@ public class PistaController : MonoBehaviour
     public PistaState CurrentState { get; private set; } = PistaState.FollowingPlayer;
     public Transform CurrentLanternTarget { get; private set; }
     public Transform CurrentPreviewTarget { get; private set; }
+    public bool IsTraveling => CurrentState == PistaState.Traveling;
 
+    private Transform playerTarget;
     private bool aimStickEngaged;
+    private Sprite defaultTravelSprite;
+    private Sprite defaultExplosionSprite;
+    private bool isPlayingPulseAttackAnimation;
+    private float pulseAttackAnimationElapsedTime;
+    private bool travelVisualsActive;
+    private TravelDestination currentTravelDestination;
     private readonly Collider2D[] switchOverlapResults = new Collider2D[8];
     private readonly RaycastHit2D[] switchCastResults = new RaycastHit2D[8];
     private readonly Collider2D[] pulseAttackResults = new Collider2D[16];
@@ -50,33 +72,60 @@ public class PistaController : MonoBehaviour
 
     private void Awake()
     {
+        ResolvePlayerTarget();
+
+        if (travelSpriteRenderer == null)
+            travelSpriteRenderer = GetComponent<SpriteRenderer>();
+
+        if (travelSpriteRenderer != null)
+            defaultTravelSprite = travelSpriteRenderer.sprite;
+
+        if (explosionSpriteRenderer == null)
+            explosionSpriteRenderer = FindExplosionSpriteRenderer();
+
+        if (explosionSpriteRenderer != null)
+            defaultExplosionSprite = explosionSpriteRenderer.sprite;
+
+        if (travelTrails == null || travelTrails.Length == 0)
+            travelTrails = GetComponentsInChildren<TrailRenderer>(true);
+
+        if (travelParticleEffects == null || travelParticleEffects.Length == 0)
+            travelParticleEffects = GetComponentsInChildren<ParticleSystem>(true);
+
         if (playerTarget != null && CurrentState == PistaState.FollowingPlayer)
             transform.position = GetFollowAnchorPosition();
+
+        ApplyTravelVisualState(forceRefresh: true);
     }
 
     private void Update()
     {
+        ResolvePlayerTarget();
+
         switch (CurrentState)
         {
             case PistaState.FollowingPlayer:
-                MoveToward(GetFollowAnchorPosition(), followMoveSpeed);
+                SnapToFollowAnchor();
                 break;
 
             case PistaState.Aiming:
                 if (CurrentLanternTarget != null)
                     SnapToLanternTarget();
                 else
-                    MoveToward(GetFollowAnchorPosition(), followMoveSpeed);
+                    SnapToFollowAnchor();
                 break;
 
-            case PistaState.MovingToLantern:
-                UpdateMoveToLantern();
+            case PistaState.Traveling:
+                UpdateTravel();
                 break;
 
             case PistaState.LatchedToLantern:
                 SnapToLanternTarget();
                 break;
         }
+
+        UpdatePulseAttackAnimation();
+        ApplyTravelVisualState();
     }
 
     public void SetPlayerTarget(Transform targetTransform)
@@ -84,9 +133,20 @@ public class PistaController : MonoBehaviour
         playerTarget = targetTransform;
     }
 
+    private void OnDisable()
+    {
+        if (!Application.isPlaying)
+            return;
+
+        playerTarget = null;
+        CurrentLanternTarget = null;
+        CurrentPreviewTarget = null;
+        currentTravelDestination = TravelDestination.None;
+    }
+
     public void BeginAiming()
     {
-        CurrentState = PistaState.Aiming;
+        SetState(PistaState.Aiming);
     }
 
     public void EndAiming()
@@ -94,16 +154,16 @@ public class PistaController : MonoBehaviour
         aimStickEngaged = false;
         CurrentPreviewTarget = null;
 
-        if (CurrentState == PistaState.MovingToLantern)
+        if (CurrentState == PistaState.Traveling)
             return;
 
         if (CurrentLanternTarget != null)
         {
-            CurrentState = PistaState.LatchedToLantern;
+            SetState(PistaState.LatchedToLantern);
             return;
         }
 
-        CurrentState = PistaState.FollowingPlayer;
+        SetState(PistaState.FollowingPlayer);
     }
 
     public void MoveToLantern(Transform lanternTarget)
@@ -111,9 +171,11 @@ public class PistaController : MonoBehaviour
         if (lanternTarget == null)
             return;
 
+        CurrentPreviewTarget = null;
         CurrentLanternTarget = lanternTarget;
         activatedSwitchesThisTravel.Clear();
-        CurrentState = PistaState.MovingToLantern;
+        currentTravelDestination = TravelDestination.Lantern;
+        SetState(PistaState.Traveling);
     }
 
     public void RecallToPlayer()
@@ -122,12 +184,26 @@ public class PistaController : MonoBehaviour
         CurrentPreviewTarget = null;
         aimStickEngaged = false;
         activatedSwitchesThisTravel.Clear();
-        CurrentState = PistaState.FollowingPlayer;
+
+        if (playerTarget == null)
+        {
+            currentTravelDestination = TravelDestination.None;
+            SetState(PistaState.FollowingPlayer);
+            return;
+        }
+
+        currentTravelDestination = TravelDestination.Player;
+        SetState(PistaState.Traveling);
     }
 
     public void SnapToPlayer()
     {
-        RecallToPlayer();
+        CurrentLanternTarget = null;
+        CurrentPreviewTarget = null;
+        aimStickEngaged = false;
+        activatedSwitchesThisTravel.Clear();
+        currentTravelDestination = TravelDestination.None;
+        SetState(PistaState.FollowingPlayer);
         transform.position = GetFollowAnchorPosition();
     }
 
@@ -151,12 +227,13 @@ public class PistaController : MonoBehaviour
                 affectedTargetCount++;
         }
 
+        BeginPulseAttackAnimation();
         return affectedTargetCount;
     }
 
     public void ProcessAimInput(Vector2 aimInput)
     {
-        if (CurrentState == PistaState.MovingToLantern)
+        if (CurrentState == PistaState.Traveling)
             return;
 
         float inputMagnitude = aimInput.magnitude;
@@ -198,46 +275,213 @@ public class PistaController : MonoBehaviour
 
     public Vector3 GetFollowAnchorPosition()
     {
+        ResolvePlayerTarget();
+
         if (playerTarget == null)
             return transform.position;
 
         return playerTarget.position + (Vector3)followOffset;
     }
 
-    private void UpdateMoveToLantern()
+    private void ResolvePlayerTarget()
     {
-        if (CurrentLanternTarget == null)
-        {
-            CurrentState = PistaState.FollowingPlayer;
+        if (playerTarget != null)
             return;
+
+        PlayerController playerController = FindFirstObjectByType<PlayerController>();
+        if (playerController != null)
+            playerTarget = playerController.transform;
+    }
+
+    private void UpdateTravel()
+    {
+        Vector3 destinationPosition;
+        float travelSpeed;
+
+        switch (currentTravelDestination)
+        {
+            case TravelDestination.Player:
+                destinationPosition = GetFollowAnchorPosition();
+                travelSpeed = followMoveSpeed;
+                break;
+
+            case TravelDestination.Lantern:
+                if (CurrentLanternTarget == null)
+                {
+                    currentTravelDestination = TravelDestination.None;
+                    SetState(PistaState.FollowingPlayer);
+                    return;
+                }
+
+                destinationPosition = CurrentLanternTarget.position;
+                travelSpeed = lanternMoveSpeed;
+                break;
+
+            default:
+                SetState(PistaState.FollowingPlayer);
+                return;
         }
 
         Vector3 previousPosition = transform.position;
-        MoveToward(CurrentLanternTarget.position, lanternMoveSpeed);
+        MoveToward(destinationPosition, travelSpeed);
         ActivateSwitchesAlongTravel(previousPosition, transform.position);
 
-        if ((CurrentLanternTarget.position - transform.position).sqrMagnitude <= arrivalDistance * arrivalDistance)
+        if ((destinationPosition - transform.position).sqrMagnitude > arrivalDistance * arrivalDistance)
+            return;
+
+        transform.position = destinationPosition;
+        ActivateNearbySwitches(transform.position, CreateSwitchContactFilter(), GetSwitchInteractionRadius());
+
+        if (currentTravelDestination == TravelDestination.Lantern)
         {
-            transform.position = CurrentLanternTarget.position;
-            ActivateNearbySwitches(transform.position, CreateSwitchContactFilter(), GetSwitchInteractionRadius());
-            CurrentState = PistaState.LatchedToLantern;
+            currentTravelDestination = TravelDestination.None;
+            SetState(PistaState.LatchedToLantern);
+            return;
         }
+
+        currentTravelDestination = TravelDestination.None;
+        SetState(PistaState.FollowingPlayer);
     }
 
     private void SnapToLanternTarget()
     {
         if (CurrentLanternTarget == null)
         {
-            CurrentState = PistaState.FollowingPlayer;
+            SetState(PistaState.FollowingPlayer);
             return;
         }
 
         transform.position = CurrentLanternTarget.position;
     }
 
+    private void SnapToFollowAnchor()
+    {
+        transform.position = GetFollowAnchorPosition();
+    }
+
     private void MoveToward(Vector3 targetPosition, float speed)
     {
         transform.position = Vector3.MoveTowards(transform.position, targetPosition, speed * Time.deltaTime);
+    }
+
+    private void SetState(PistaState newState)
+    {
+        if (CurrentState == newState)
+            return;
+
+        CurrentState = newState;
+        ApplyTravelVisualState();
+    }
+
+    private void BeginPulseAttackAnimation()
+    {
+        if (explosionSpriteRenderer == null || !HasSprites(pulseAttackAnimationFrames))
+            return;
+
+        isPlayingPulseAttackAnimation = true;
+        pulseAttackAnimationElapsedTime = 0f;
+        explosionSpriteRenderer.enabled = true;
+        explosionSpriteRenderer.sprite = GetFirstAvailableSprite(pulseAttackAnimationFrames);
+        ApplyTravelVisualState(forceRefresh: true);
+    }
+
+    private void UpdatePulseAttackAnimation()
+    {
+        if (!isPlayingPulseAttackAnimation)
+            return;
+
+        if (explosionSpriteRenderer == null || !HasSprites(pulseAttackAnimationFrames) || pulseAttackAnimationFramesPerSecond <= 0f)
+        {
+            StopPulseAttackAnimation();
+            return;
+        }
+
+        pulseAttackAnimationElapsedTime += Time.deltaTime;
+        int frameIndex = Mathf.FloorToInt(pulseAttackAnimationElapsedTime * pulseAttackAnimationFramesPerSecond);
+
+        if (frameIndex >= pulseAttackAnimationFrames.Length)
+        {
+            StopPulseAttackAnimation();
+            return;
+        }
+
+        Sprite animationFrame = pulseAttackAnimationFrames[frameIndex];
+        if (animationFrame != null)
+            explosionSpriteRenderer.sprite = animationFrame;
+    }
+
+    private void StopPulseAttackAnimation()
+    {
+        isPlayingPulseAttackAnimation = false;
+        pulseAttackAnimationElapsedTime = 0f;
+
+        if (explosionSpriteRenderer != null)
+        {
+            explosionSpriteRenderer.sprite = defaultExplosionSprite;
+            explosionSpriteRenderer.enabled = false;
+        }
+
+        ApplyTravelVisualState(forceRefresh: true);
+    }
+
+    private void ApplyTravelVisualState(bool forceRefresh = false)
+    {
+        bool shouldShowTravelVisuals = CurrentState == PistaState.Traveling;
+        if (!forceRefresh && travelVisualsActive == shouldShowTravelVisuals)
+            return;
+
+        travelVisualsActive = shouldShowTravelVisuals;
+
+        if (travelSpriteRenderer != null)
+        {
+            if (shouldShowTravelVisuals && !isPlayingPulseAttackAnimation && defaultTravelSprite != null)
+                travelSpriteRenderer.sprite = defaultTravelSprite;
+
+            travelSpriteRenderer.enabled = shouldShowTravelVisuals;
+        }
+
+        if (explosionSpriteRenderer != null)
+        {
+            if (!isPlayingPulseAttackAnimation)
+                explosionSpriteRenderer.sprite = defaultExplosionSprite;
+
+            explosionSpriteRenderer.enabled = isPlayingPulseAttackAnimation;
+        }
+
+        if (travelTrails != null)
+        {
+            for (int i = 0; i < travelTrails.Length; i++)
+            {
+                TrailRenderer trail = travelTrails[i];
+                if (trail == null)
+                    continue;
+
+                trail.emitting = shouldShowTravelVisuals;
+
+                if (!shouldShowTravelVisuals)
+                    trail.Clear();
+            }
+        }
+
+        if (travelParticleEffects == null)
+            return;
+
+        for (int i = 0; i < travelParticleEffects.Length; i++)
+        {
+            ParticleSystem particleEffect = travelParticleEffects[i];
+            if (particleEffect == null)
+                continue;
+
+            if (shouldShowTravelVisuals)
+            {
+                if (!particleEffect.isPlaying)
+                    particleEffect.Play(true);
+            }
+            else
+            {
+                particleEffect.Stop(true, ParticleSystemStopBehavior.StopEmittingAndClear);
+            }
+        }
     }
 
     private void ActivateSwitchesAlongTravel(Vector2 startPosition, Vector2 endPosition)
@@ -412,12 +656,10 @@ public class PistaController : MonoBehaviour
     {
         targetTransform = null;
 
-        ILightable lightable = hit.GetComponent<ILightable>();
-
-        if (lightable == null || !lightable.IsLit)
+        if (!TryGetInterface(hit, out ILightable lightable, out Component lightableComponent) || !lightable.IsLit)
             return false;
 
-        targetTransform = hit.transform;
+        targetTransform = lightableComponent != null ? lightableComponent.transform : hit.transform;
         return true;
     }
 
@@ -428,6 +670,48 @@ public class PistaController : MonoBehaviour
 
         RaycastHit2D hit = Physics2D.Linecast(transform.position, targetPosition, obstacleLayers);
         return hit.collider != null;
+    }
+
+    private SpriteRenderer FindExplosionSpriteRenderer()
+    {
+        SpriteRenderer[] spriteRenderers = GetComponentsInChildren<SpriteRenderer>(true);
+
+        for (int i = 0; i < spriteRenderers.Length; i++)
+        {
+            SpriteRenderer spriteRenderer = spriteRenderers[i];
+            if (spriteRenderer != null && spriteRenderer != travelSpriteRenderer)
+                return spriteRenderer;
+        }
+
+        return null;
+    }
+
+    private static bool HasSprites(Sprite[] sprites)
+    {
+        if (sprites == null)
+            return false;
+
+        for (int i = 0; i < sprites.Length; i++)
+        {
+            if (sprites[i] != null)
+                return true;
+        }
+
+        return false;
+    }
+
+    private static Sprite GetFirstAvailableSprite(Sprite[] sprites)
+    {
+        if (sprites == null)
+            return null;
+
+        for (int i = 0; i < sprites.Length; i++)
+        {
+            if (sprites[i] != null)
+                return sprites[i];
+        }
+
+        return null;
     }
 
     private void OnDrawGizmosSelected()

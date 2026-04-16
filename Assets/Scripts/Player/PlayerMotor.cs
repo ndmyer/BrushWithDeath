@@ -5,6 +5,7 @@ using UnityEngine;
 public class PlayerMotor : MonoBehaviour
 {
     [SerializeField] private float moveSpeed = 4.5f;
+    [SerializeField] private RigidbodyInterpolation2D interpolationMode = RigidbodyInterpolation2D.Interpolate;
 
     private Rigidbody2D rb;
     private Vector2 movementInput;
@@ -17,6 +18,21 @@ public class PlayerMotor : MonoBehaviour
     private void Awake()
     {
         rb = GetComponent<Rigidbody2D>();
+        ApplyPhysicsSettings();
+    }
+
+    private void Reset()
+    {
+        rb = GetComponent<Rigidbody2D>();
+        ApplyPhysicsSettings();
+    }
+
+    private void OnValidate()
+    {
+        if (rb == null)
+            rb = GetComponent<Rigidbody2D>();
+
+        ApplyPhysicsSettings();
     }
 
     public void SetMovementInput(Vector2 input)
@@ -36,5 +52,13 @@ public class PlayerMotor : MonoBehaviour
     private void FixedUpdate()
     {
         rb.linearVelocity = movementInput * moveSpeed;
+    }
+
+    private void ApplyPhysicsSettings()
+    {
+        if (rb == null)
+            return;
+
+        rb.interpolation = interpolationMode;
     }
 }
