@@ -16,6 +16,7 @@ public class LightableTorch : MonoBehaviour, ILightable
     [SerializeField] private PuzzleEventEmitter eventEmitter;
     [SerializeField] private SpriteRenderer targetRenderer;
     [SerializeField] private SpriteRenderer animatedVisualRenderer;
+    [SerializeField] private SpriteRenderer selectorRenderer;
     [SerializeField] private bool startsLit;
     [SerializeField] private bool toggleOnLight = true;
     [SerializeField] private Color unlitColor = new Color(0.25f, 0.25f, 0.25f, 1f);
@@ -25,6 +26,13 @@ public class LightableTorch : MonoBehaviour, ILightable
     [SerializeField] private Sprite possessedSpriteFallback;
     [SerializeField] private Sprite[] possessedAnimationFrames;
     [SerializeField, Min(0f)] private float possessedAnimationFramesPerSecond = 10f;
+    [SerializeField] private Color selectorColor = new Color(1f, 0.42f, 0.08f, 0.85f);
+    [SerializeField, Min(0f)] private float selectorPulseSpeed = 3f;
+    [SerializeField, Min(0f)] private float selectorMinScaleMultiplier = 0.9f;
+    [SerializeField, Min(0f)] private float selectorMaxScaleMultiplier = 1.15f;
+    [SerializeField, Range(0f, 1f)] private float selectorMinAlpha = 0.35f;
+    [SerializeField, Range(0f, 1f)] private float selectorMaxAlpha = 0.85f;
+    [SerializeField, Min(0f)] private float selectorInnerMaskScaleMultiplier = 0.58f;
     [SerializeField] private PistaController pistaController;
     [SerializeField] private UnityEvent onLit;
     [SerializeField] private UnityEvent onExtinguished;
@@ -33,6 +41,8 @@ public class LightableTorch : MonoBehaviour, ILightable
     public bool IsLit => stateSource != null ? stateSource.Value : startsLit;
 
     private Sprite defaultAnimatedVisualSprite;
+    private Vector3 defaultSelectorLocalScale;
+    private SpriteMask selectorMask;
     private bool isPossessedByPista;
     private bool isPlayingLitAnimation;
     private float animatedVisualElapsedTime;
@@ -54,8 +64,18 @@ public class LightableTorch : MonoBehaviour, ILightable
         if (animatedVisualRenderer == null)
             animatedVisualRenderer = FindAnimatedVisualRenderer();
 
+        if (selectorRenderer == null)
+            selectorRenderer = FindSelectorRenderer();
+
         if (animatedVisualRenderer != null)
             defaultAnimatedVisualSprite = animatedVisualRenderer.sprite;
+
+        if (selectorRenderer != null)
+        {
+            defaultSelectorLocalScale = selectorRenderer.transform.localScale;
+            EnsureSelectorMask();
+            selectorRenderer.enabled = false;
+        }
     }
 
     private void Start()
@@ -77,6 +97,7 @@ public class LightableTorch : MonoBehaviour, ILightable
     {
         UpdatePossessionState();
         UpdateAnimatedVisual();
+        UpdateSelectorVisual();
     }
 
     public void Light(PlayerController player)
@@ -155,19 +176,7 @@ public class LightableTorch : MonoBehaviour, ILightable
             return false;
 
         Transform currentLanternTarget = pistaController.CurrentLanternTarget;
-        if (currentLanternTarget == null)
-            return false;
-
-        if (currentLanternTarget == transform)
-            return true;
-
-        LightableTorch targetedTorch = currentLanternTarget.GetComponent<LightableTorch>();
-        if (targetedTorch == null)
-            targetedTorch = currentLanternTarget.GetComponentInParent<LightableTorch>();
-        if (targetedTorch == null)
-            targetedTorch = currentLanternTarget.GetComponentInChildren<LightableTorch>();
-
-        return targetedTorch == this;
+        return MatchesTorchTarget(currentLanternTarget);
     }
 
     private void UpdateAnimatedVisual()
@@ -240,6 +249,32 @@ public class LightableTorch : MonoBehaviour, ILightable
         SetAnimatedVisualToDefaultLitSprite();
     }
 
+    private void UpdateSelectorVisual()
+    {
+        if (selectorRenderer == null)
+            return;
+
+        bool shouldShowSelector = IsLit && IsSelectedByPista();
+        selectorRenderer.enabled = shouldShowSelector;
+
+        if (!shouldShowSelector)
+        {
+            selectorRenderer.transform.localScale = defaultSelectorLocalScale;
+            selectorRenderer.color = ApplySelectorAlpha(selectorColor, selectorMinAlpha);
+            return;
+        }
+
+        float pulse = selectorPulseSpeed <= 0f
+            ? 1f
+            : 0.5f + 0.5f * Mathf.Sin(Time.time * selectorPulseSpeed * Mathf.PI * 2f);
+
+        float scaleMultiplier = Mathf.Lerp(selectorMinScaleMultiplier, selectorMaxScaleMultiplier, pulse);
+        float alpha = Mathf.Lerp(selectorMinAlpha, selectorMaxAlpha, pulse);
+
+        selectorRenderer.transform.localScale = defaultSelectorLocalScale * scaleMultiplier;
+        selectorRenderer.color = ApplySelectorAlpha(selectorColor, alpha);
+    }
+
     private void ApplyAnimatedVisualImmediate()
     {
         if (animatedVisualRenderer == null)
@@ -309,6 +344,43 @@ public class LightableTorch : MonoBehaviour, ILightable
         return null;
     }
 
+    private SpriteRenderer FindSelectorRenderer()
+    {
+        SpriteRenderer[] renderers = GetComponentsInChildren<SpriteRenderer>(true);
+
+        foreach (SpriteRenderer renderer in renderers)
+        {
+            if (renderer != null && renderer != targetRenderer && renderer != animatedVisualRenderer)
+                return renderer;
+        }
+
+        return null;
+    }
+
+    private void EnsureSelectorMask()
+    {
+        if (selectorRenderer == null || selectorRenderer.sprite == null)
+            return;
+
+        selectorRenderer.maskInteraction = SpriteMaskInteraction.VisibleOutsideMask;
+
+        if (selectorMask == null)
+            selectorMask = selectorRenderer.GetComponentInChildren<SpriteMask>(true);
+
+        if (selectorMask == null)
+        {
+            GameObject maskObject = new GameObject("SelectorCutoutMask");
+            maskObject.transform.SetParent(selectorRenderer.transform, false);
+            selectorMask = maskObject.AddComponent<SpriteMask>();
+        }
+
+        selectorMask.sprite = selectorRenderer.sprite;
+        selectorMask.alphaCutoff = 0.1f;
+        selectorMask.transform.localPosition = Vector3.zero;
+        selectorMask.transform.localRotation = Quaternion.identity;
+        selectorMask.transform.localScale = Vector3.one * selectorInnerMaskScaleMultiplier;
+    }
+
     private void StopLitAnimationPlayback()
     {
         animatedVisualElapsedTime = 0f;
@@ -332,6 +404,37 @@ public class LightableTorch : MonoBehaviour, ILightable
     private bool ShouldUsePossessedVisuals()
     {
         return isPossessedByPista && (HasSprites(possessedAnimationFrames) || possessedSpriteFallback != null);
+    }
+
+    private bool IsSelectedByPista()
+    {
+        if (pistaController == null)
+            return false;
+
+        return MatchesTorchTarget(pistaController.CurrentPreviewTarget);
+    }
+
+    private bool MatchesTorchTarget(Transform target)
+    {
+        if (target == null)
+            return false;
+
+        if (target == transform)
+            return true;
+
+        LightableTorch targetedTorch = target.GetComponent<LightableTorch>();
+        if (targetedTorch == null)
+            targetedTorch = target.GetComponentInParent<LightableTorch>();
+        if (targetedTorch == null)
+            targetedTorch = target.GetComponentInChildren<LightableTorch>();
+
+        return targetedTorch == this;
+    }
+
+    private static Color ApplySelectorAlpha(Color color, float alpha)
+    {
+        color.a = alpha;
+        return color;
     }
 
     private static bool HasSprites(Sprite[] sprites)

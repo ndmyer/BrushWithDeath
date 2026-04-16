@@ -16240,6 +16240,75 @@ PrefabInstance:
     m_AddedGameObjects: []
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: e928aa769e7a9b44e98802a0142ed6c8, type: 3}
+--- !u!1001 &1283670757
+PrefabInstance:
+  m_ObjectHideFlags: 0
+  serializedVersion: 2
+  m_Modification:
+    serializedVersion: 3
+    m_TransformParent: {fileID: 0}
+    m_Modifications:
+    - target: {fileID: 2689799850906682317, guid: 5bd3d46b96b23fc43ae6fbef9bcf9813, type: 3}
+      propertyPath: m_Size.x
+      value: 6.9593563
+      objectReference: {fileID: 0}
+    - target: {fileID: 2689799850906682317, guid: 5bd3d46b96b23fc43ae6fbef9bcf9813, type: 3}
+      propertyPath: m_Offset.x
+      value: 0.44522762
+      objectReference: {fileID: 0}
+    - target: {fileID: 5422746271883051085, guid: 5bd3d46b96b23fc43ae6fbef9bcf9813, type: 3}
+      propertyPath: dialogueText
+      value: Text can come in like a typewriter now.
+      objectReference: {fileID: 0}
+    - target: {fileID: 6331688727121655574, guid: 5bd3d46b96b23fc43ae6fbef9bcf9813, type: 3}
+      propertyPath: m_Name
+      value: DialogueTrigger_Base
+      objectReference: {fileID: 0}
+    - target: {fileID: 7455510446515341170, guid: 5bd3d46b96b23fc43ae6fbef9bcf9813, type: 3}
+      propertyPath: m_LocalPosition.x
+      value: -0.43706906
+      objectReference: {fileID: 0}
+    - target: {fileID: 7455510446515341170, guid: 5bd3d46b96b23fc43ae6fbef9bcf9813, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: 3.0622325
+      objectReference: {fileID: 0}
+    - target: {fileID: 7455510446515341170, guid: 5bd3d46b96b23fc43ae6fbef9bcf9813, type: 3}
+      propertyPath: m_LocalPosition.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7455510446515341170, guid: 5bd3d46b96b23fc43ae6fbef9bcf9813, type: 3}
+      propertyPath: m_LocalRotation.w
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 7455510446515341170, guid: 5bd3d46b96b23fc43ae6fbef9bcf9813, type: 3}
+      propertyPath: m_LocalRotation.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7455510446515341170, guid: 5bd3d46b96b23fc43ae6fbef9bcf9813, type: 3}
+      propertyPath: m_LocalRotation.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7455510446515341170, guid: 5bd3d46b96b23fc43ae6fbef9bcf9813, type: 3}
+      propertyPath: m_LocalRotation.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7455510446515341170, guid: 5bd3d46b96b23fc43ae6fbef9bcf9813, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7455510446515341170, guid: 5bd3d46b96b23fc43ae6fbef9bcf9813, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7455510446515341170, guid: 5bd3d46b96b23fc43ae6fbef9bcf9813, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
+      objectReference: {fileID: 0}
+    m_RemovedComponents: []
+    m_RemovedGameObjects: []
+    m_AddedGameObjects: []
+    m_AddedComponents: []
+  m_SourcePrefab: {fileID: 100100000, guid: 5bd3d46b96b23fc43ae6fbef9bcf9813, type: 3}
 --- !u!1001 &1309070370
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -18382,3 +18451,4 @@ SceneRoots:
   - {fileID: 398123955}
   - {fileID: 165426657}
   - {fileID: 407634973}
+  - {fileID: 1283670757}
