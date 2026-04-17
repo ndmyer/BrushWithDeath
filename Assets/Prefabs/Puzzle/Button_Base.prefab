@@ -13,7 +13,7 @@ GameObject:
   - component: {fileID: 6360659742947614655}
   - component: {fileID: 2562688667350554619}
   - component: {fileID: 1421719579208022851}
-  - component: {fileID: 1740471906322878346}
+  - component: {fileID: 5391927041706060850}
   m_Layer: 6
   m_Name: Button_Base
   m_TagString: Untagged
@@ -31,7 +31,7 @@ Transform:
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 3.4, y: -3.4, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_LocalScale: {x: 0.5, y: 0.5, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 2398841742608547366}
@@ -121,8 +121,8 @@ MonoBehaviour:
   onEmitState:
     m_PersistentCalls:
       m_Calls: []
---- !u!70 &1740471906322878346
-CapsuleCollider2D:
+--- !u!61 &5391927041706060850
+BoxCollider2D:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
@@ -155,9 +155,18 @@ CapsuleCollider2D:
   m_UsedByEffector: 0
   m_CompositeOperation: 0
   m_CompositeOrder: 0
-  m_Offset: {x: 0.019002497, y: -0.015642349}
-  m_Size: {x: 1.2220799, y: 0.74069893}
-  m_Direction: 1
+  m_Offset: {x: 0, y: -0.79280853}
+  m_SpriteTilingProperty:
+    border: {x: 0, y: 0, z: 0, w: 0}
+    pivot: {x: 0, y: 0}
+    oldSize: {x: 0, y: 0}
+    newSize: {x: 0, y: 0}
+    adaptiveTilingThreshold: 0
+    drawMode: 0
+    adaptiveTiling: 0
+  m_AutoTiling: 0
+  m_Size: {x: 1, y: 1.3083153}
+  m_EdgeRadius: 0
 --- !u!1 &8187991406936180953
 GameObject:
   m_ObjectHideFlags: 0
