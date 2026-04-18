@@ -21,6 +21,7 @@ GameObject:
   - component: {fileID: 16026142024802780}
   - component: {fileID: 2742409629054271828}
   - component: {fileID: 6874226444601224822}
+  - component: {fileID: 6400356662329739815}
   m_Layer: 0
   m_Name: Player
   m_TagString: Untagged
@@ -244,7 +245,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d542f5e375852a04dacb7381793792af, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::PlayerController
-  animator: {fileID: 0}
+  animator: {fileID: 6400356662329739815}
+  spriteRenderer: {fileID: 0}
   pistaController: {fileID: 0}
   tempoService: {fileID: 0}
 --- !u!114 &6149729211161500281
@@ -352,3 +354,25 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 7c3e8d5a3b6a4d42b8bba12c8d1f7e11, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::PlayerProgression
+--- !u!95 &6400356662329739815
+Animator:
+  serializedVersion: 7
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2894776957610741968}
+  m_Enabled: 1
+  m_Avatar: {fileID: 0}
+  m_Controller: {fileID: 9100000, guid: be0e87c8b1b8a5c459133dd4d5253dd3, type: 2}
+  m_CullingMode: 0
+  m_UpdateMode: 0
+  m_ApplyRootMotion: 0
+  m_LinearVelocityBlending: 0
+  m_StabilizeFeet: 0
+  m_AnimatePhysics: 0
+  m_WarningMessage: 
+  m_HasTransformHierarchy: 1
+  m_AllowConstantClipSamplingOptimization: 1
+  m_KeepAnimatorStateOnDisable: 0
+  m_WriteDefaultValuesOnDisable: 0

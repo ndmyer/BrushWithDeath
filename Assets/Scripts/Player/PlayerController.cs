@@ -7,6 +7,8 @@ using UnityEngine;
 [RequireComponent(typeof(PlayerHealth))]
 [RequireComponent(typeof(PlayerProgression))]
 [RequireComponent(typeof(TempoGroundIndicator))]
+[RequireComponent(typeof(Animator))]
+[RequireComponent(typeof(SpriteRenderer))]
 public class PlayerController : MonoBehaviour
 {
     public enum PlayerState
@@ -21,6 +23,7 @@ public class PlayerController : MonoBehaviour
     }
 
     [SerializeField] private Animator animator;
+    [SerializeField] private SpriteRenderer spriteRenderer;
     [SerializeField] private PistaController pistaController;
     [SerializeField] private TempoService tempoService;
 
@@ -40,6 +43,12 @@ public class PlayerController : MonoBehaviour
         inputReader = GetComponent<PlayerInputReader>();
         motor = GetComponent<PlayerMotor>();
         interactor = GetComponent<PlayerInteractor>();
+
+        if (animator == null)
+            animator = GetComponent<Animator>();
+
+        if (spriteRenderer == null)
+            spriteRenderer = GetComponent<SpriteRenderer>();
 
         if (pistaController == null)
             pistaController = FindAnyObjectByType<PistaController>();
@@ -151,6 +160,9 @@ public class PlayerController : MonoBehaviour
         animator.SetFloat("FaceX", face.x);
         animator.SetFloat("FaceY", face.y);
         animator.SetBool("IsMoving", motor.IsMoving);
+
+        if (spriteRenderer != null)
+            spriteRenderer.flipX = face.x < -0.01f;
     }
 
     public void SetState(PlayerState newState)
