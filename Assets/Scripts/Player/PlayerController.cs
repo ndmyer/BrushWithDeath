@@ -11,6 +11,9 @@ using UnityEngine;
 [RequireComponent(typeof(SpriteRenderer))]
 public class PlayerController : MonoBehaviour
 {
+    private const string LanternSwingTriggerName = "LanternSwing";
+    private const string IsDeadBoolName = "IsDead";
+
     public enum PlayerState
     {
         Normal,
@@ -30,6 +33,9 @@ public class PlayerController : MonoBehaviour
     private PlayerInputReader inputReader;
     private PlayerMotor motor;
     private PlayerInteractor interactor;
+    private PlayerLanternSwingVFX lanternSwingVfx;
+    private bool hasLanternSwingTrigger;
+    private bool hasIsDeadBool;
 
     public PlayerState CurrentState { get; private set; } = PlayerState.Normal;
 
@@ -43,9 +49,12 @@ public class PlayerController : MonoBehaviour
         inputReader = GetComponent<PlayerInputReader>();
         motor = GetComponent<PlayerMotor>();
         interactor = GetComponent<PlayerInteractor>();
+        lanternSwingVfx = GetComponent<PlayerLanternSwingVFX>();
 
         if (animator == null)
             animator = GetComponent<Animator>();
+
+        CacheAnimationParameters();
 
         if (spriteRenderer == null)
             spriteRenderer = GetComponent<SpriteRenderer>();
@@ -161,8 +170,8 @@ public class PlayerController : MonoBehaviour
         animator.SetFloat("FaceY", face.y);
         animator.SetBool("IsMoving", motor.IsMoving);
 
-        if (spriteRenderer != null)
-            spriteRenderer.flipX = face.x < -0.01f;
+        if (hasIsDeadBool)
+            animator.SetBool(IsDeadBoolName, CurrentState == PlayerState.Dead);
     }
 
     public void SetState(PlayerState newState)
@@ -197,6 +206,11 @@ public class PlayerController : MonoBehaviour
 
     private void HandleLantern()
     {
+        if (animator != null && hasLanternSwingTrigger)
+            animator.SetTrigger(LanternSwingTriggerName);
+
+        lanternSwingVfx?.Play(motor.FacingDirection);
+
         Debug.Log("Player used lantern.");
         interactor.TryLight(motor.FacingDirection, this);
     }
@@ -250,5 +264,25 @@ public class PlayerController : MonoBehaviour
     {
         tempoService?.CancelChannel(allowGraceCompletion);
         SetState(PlayerState.Normal);
+    }
+
+    private void CacheAnimationParameters()
+    {
+        hasLanternSwingTrigger = HasAnimatorParameter(LanternSwingTriggerName, AnimatorControllerParameterType.Trigger);
+        hasIsDeadBool = HasAnimatorParameter(IsDeadBoolName, AnimatorControllerParameterType.Bool);
+    }
+
+    private bool HasAnimatorParameter(string parameterName, AnimatorControllerParameterType parameterType)
+    {
+        if (animator == null)
+            return false;
+
+        foreach (AnimatorControllerParameter parameter in animator.parameters)
+        {
+            if (parameter.type == parameterType && parameter.name == parameterName)
+                return true;
+        }
+
+        return false;
     }
 }
