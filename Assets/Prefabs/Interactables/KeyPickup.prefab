@@ -12,6 +12,7 @@ GameObject:
   - component: {fileID: 6100000000000000000}
   - component: {fileID: 1140000000000000000}
   - component: {fileID: 2120000000000000000}
+  - component: {fileID: 1140000000000000001}
   m_Layer: 0
   m_Name: KeyPickup
   m_TagString: Untagged
@@ -90,7 +91,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: e4b6f198d9f342c0b1765d1a0bc2ef55, type: 3}
-  m_Name: 
+  m_Name:
   m_EditorClassIdentifier: Assembly-CSharp::KeyPickup
 --- !u!212 &2120000000000000000
 SpriteRenderer:
@@ -151,3 +152,18 @@ SpriteRenderer:
   m_SpriteTileMode: 0
   m_WasSpriteAssigned: 1
   m_SpriteSortPoint: 0
+--- !u!114 &1140000000000000001
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1000000000000000000}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 069074f4742d4f0f8a55b6e8f135e0cb, type: 3}
+  m_Name: ""
+  m_EditorClassIdentifier: Assembly-CSharp::PickupBob
+  amplitude: 0.06
+  frequency: 2.25
+  randomizeStartOffset: 1

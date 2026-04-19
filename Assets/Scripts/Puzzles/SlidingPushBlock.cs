@@ -1,4 +1,5 @@
 using UnityEngine;
+using UnityEngine.Serialization;
 
 [RequireComponent(typeof(Collider2D))]
 [RequireComponent(typeof(Rigidbody2D))]
@@ -8,7 +9,17 @@ public class SlidingPushBlock : MonoBehaviour, IKnockbackable
     [SerializeField] private Rigidbody2D body;
     [SerializeField] private Collider2D spawnAreaCollider;
     [SerializeField] private Transform spawnAnchor;
+    [SerializeField] private Transform pathStartPoint;
+    [SerializeField] private Transform pathEndPoint;
     [SerializeField] private TempoService tempoService;
+
+    [Header("Path Movement")]
+    [SerializeField] private bool moveOnPath;
+    [SerializeField] private bool startMovingTowardEnd = true;
+    [SerializeField, Min(0f)] private float slowPathMoveSpeed = 0.75f;
+    [SerializeField, FormerlySerializedAs("pathMoveSpeed"), Min(0f)] private float midPathMoveSpeed = 1.5f;
+    [SerializeField, Min(0f)] private float fastPathMoveSpeed = 2.125f;
+    [SerializeField, Min(0f)] private float intensePathMoveSpeed = 2.625f;
 
     [Header("Reset")]
     [SerializeField, Min(0f)] private float resetDelay = 1.5f;
@@ -42,6 +53,8 @@ public class SlidingPushBlock : MonoBehaviour, IKnockbackable
     private bool resetCheckActive;
     private Vector2 spawnPosition;
     private float spawnRotation;
+    private bool movingTowardPathEnd;
+    private bool pathMovementSuspended;
 
     private void Awake()
     {
@@ -51,6 +64,8 @@ public class SlidingPushBlock : MonoBehaviour, IKnockbackable
         if (tempoService == null)
             tempoService = TempoService.Instance != null ? TempoService.Instance : FindAnyObjectByType<TempoService>();
 
+        movingTowardPathEnd = startMovingTowardEnd;
+        pathMovementSuspended = false;
         CacheSpawnTransform();
         StopSliding();
         SyncTransformToBody();
@@ -58,11 +73,27 @@ public class SlidingPushBlock : MonoBehaviour, IKnockbackable
 
     private void FixedUpdate()
     {
-        if (IsLockedInSocket || !IsSliding)
+        if (IsLockedInSocket)
             return;
 
-        Vector2 targetPosition = body.position + (slideDirection * slideSpeed * Time.fixedDeltaTime);
-        body.MovePosition(targetPosition);
+        if (IsSliding)
+        {
+            Vector2 currentPosition = body != null ? body.position : (Vector2)transform.position;
+            Vector2 targetPosition = currentPosition + (slideDirection * slideSpeed * Time.fixedDeltaTime);
+
+            if (body != null)
+                body.MovePosition(targetPosition);
+            else
+                transform.position = targetPosition;
+
+            return;
+        }
+
+        float currentPathMoveSpeed = GetPathMoveSpeed();
+        if (pathMovementSuspended || !TryGetPathEndpoints(out Vector2 pathStart, out Vector2 pathEnd) || currentPathMoveSpeed <= 0.001f)
+            return;
+
+        MoveAlongPath(pathStart, pathEnd, currentPathMoveSpeed);
     }
 
     private void Update()
@@ -74,7 +105,7 @@ public class SlidingPushBlock : MonoBehaviour, IKnockbackable
         if (resetTimer < resetDelay)
             return;
 
-        if (!IsWithinSpawnAreaWithMargin())
+        if (ShouldResetAfterDelay())
         {
             ResetToSpawn();
             return;
@@ -110,6 +141,7 @@ public class SlidingPushBlock : MonoBehaviour, IKnockbackable
         float directionOffset = GetDirectionOffsetDegrees(currentTempo);
         float speed = GetSlideSpeed(currentTempo) * Mathf.Max(0f, strengthMultiplier);
 
+        pathMovementSuspended = true;
         slideDirection = Rotate(cardinalDirection, directionOffset).normalized;
         slideSpeed = speed;
         resetTimer = 0f;
@@ -128,6 +160,7 @@ public class SlidingPushBlock : MonoBehaviour, IKnockbackable
 
         currentSocket = socket;
         IsLockedInSocket = true;
+        pathMovementSuspended = true;
         resetCheckActive = false;
         resetTimer = 0f;
         StopSliding();
@@ -152,10 +185,11 @@ public class SlidingPushBlock : MonoBehaviour, IKnockbackable
         currentSocket = null;
         resetCheckActive = false;
         resetTimer = 0f;
+        movingTowardPathEnd = startMovingTowardEnd;
+        pathMovementSuspended = false;
         StopSliding();
 
-        if (spawnAnchor != null)
-            CacheSpawnTransform();
+        CacheSpawnTransform();
 
         SetWorldPosition(spawnPosition);
         SetWorldRotation(spawnRotation);
@@ -168,6 +202,13 @@ public class SlidingPushBlock : MonoBehaviour, IKnockbackable
 
     private void CacheSpawnTransform()
     {
+        if (pathStartPoint != null)
+        {
+            spawnPosition = pathStartPoint.position;
+            spawnRotation = pathStartPoint.eulerAngles.z;
+            return;
+        }
+
         if (spawnAnchor != null)
         {
             spawnPosition = spawnAnchor.position;
@@ -184,6 +225,66 @@ public class SlidingPushBlock : MonoBehaviour, IKnockbackable
 
         spawnPosition = transform.position;
         spawnRotation = transform.eulerAngles.z;
+    }
+
+    private void MoveAlongPath(Vector2 pathStart, Vector2 pathEnd, float currentPathMoveSpeed)
+    {
+        Vector2 currentPosition = body != null ? body.position : (Vector2)transform.position;
+        Vector2 targetPosition = movingTowardPathEnd ? pathEnd : pathStart;
+        Vector2 nextPosition = Vector2.MoveTowards(currentPosition, targetPosition, currentPathMoveSpeed * Time.fixedDeltaTime);
+
+        if (body != null)
+            body.MovePosition(nextPosition);
+        else
+            transform.position = nextPosition;
+
+        if ((targetPosition - nextPosition).sqrMagnitude > 0.0001f)
+            return;
+
+        SetWorldPosition(targetPosition);
+        movingTowardPathEnd = !movingTowardPathEnd;
+    }
+
+    private bool TryGetPathEndpoints(out Vector2 pathStart, out Vector2 pathEnd)
+    {
+        pathStart = pathStartPoint != null
+            ? (Vector2)pathStartPoint.position
+            : spawnAnchor != null
+                ? (Vector2)spawnAnchor.position
+                : Application.isPlaying
+                    ? spawnPosition
+                    : body != null
+                        ? body.position
+                        : (Vector2)transform.position;
+
+        if (!moveOnPath || pathEndPoint == null)
+        {
+            pathEnd = pathStart;
+            return false;
+        }
+
+        pathEnd = pathEndPoint.position;
+        return (pathEnd - pathStart).sqrMagnitude > 0.0001f;
+    }
+
+    private bool ShouldResetAfterDelay()
+    {
+        if (pathMovementSuspended && TryGetPathEndpoints(out _, out _))
+            return true;
+
+        return !IsWithinSpawnAreaWithMargin();
+    }
+
+    private float GetPathMoveSpeed()
+    {
+        TempoBand currentTempo = tempoService != null ? tempoService.CurrentTempo : TempoBand.Mid;
+        return currentTempo switch
+        {
+            TempoBand.Slow => slowPathMoveSpeed,
+            TempoBand.Fast => fastPathMoveSpeed,
+            TempoBand.Intense => intensePathMoveSpeed,
+            _ => midPathMoveSpeed
+        };
     }
 
     private bool IsWithinSpawnAreaWithMargin()
@@ -280,7 +381,19 @@ public class SlidingPushBlock : MonoBehaviour, IKnockbackable
 
     private void OnDrawGizmosSelected()
     {
-        Vector3 drawPosition = spawnAnchor != null ? spawnAnchor.position : transform.position;
+        if (TryGetPathEndpoints(out Vector2 pathStart, out Vector2 pathEnd))
+        {
+            Gizmos.color = new Color(1f, 0.8f, 0.2f, 0.9f);
+            Gizmos.DrawLine(pathStart, pathEnd);
+            Gizmos.DrawSphere(pathStart, 0.12f);
+            Gizmos.DrawSphere(pathEnd, 0.12f);
+        }
+
+        Vector3 drawPosition = pathStartPoint != null
+            ? pathStartPoint.position
+            : spawnAnchor != null
+                ? spawnAnchor.position
+                : transform.position;
 
         if (spawnAreaCollider != null)
         {

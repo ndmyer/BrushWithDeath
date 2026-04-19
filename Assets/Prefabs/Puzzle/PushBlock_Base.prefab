@@ -50,7 +50,15 @@ MonoBehaviour:
   body: {fileID: 5332287365010398758}
   spawnAreaCollider: {fileID: 0}
   spawnAnchor: {fileID: 0}
+  pathStartPoint: {fileID: 0}
+  pathEndPoint: {fileID: 0}
   tempoService: {fileID: 0}
+  moveOnPath: 0
+  startMovingTowardEnd: 1
+  slowPathMoveSpeed: 0.75
+  midPathMoveSpeed: 1.5
+  fastPathMoveSpeed: 2.125
+  intensePathMoveSpeed: 2.625
   resetDelay: 3
   spawnAreaMargin: {x: 0.25, y: 0.25}
   slowSlideSpeed: 1.5
