@@ -3419,6 +3419,10 @@ PrefabInstance:
     m_TransformParent: {fileID: 0}
     m_Modifications:
     - target: {fileID: 16026142024802780, guid: 1ff93f5e28c5de149a1c1da2a83bdbb6, type: 3}
+      propertyPath: waveSpeed
+      value: 2.4
+      objectReference: {fileID: 0}
+    - target: {fileID: 16026142024802780, guid: 1ff93f5e28c5de149a1c1da2a83bdbb6, type: 3}
       propertyPath: fastColor.b
       value: 0.2784314
       objectReference: {fileID: 0}
@@ -3431,6 +3435,26 @@ PrefabInstance:
       value: 0.87843144
       objectReference: {fileID: 0}
     - target: {fileID: 16026142024802780, guid: 1ff93f5e28c5de149a1c1da2a83bdbb6, type: 3}
+      propertyPath: innerFadeEnd
+      value: 0.95
+      objectReference: {fileID: 0}
+    - target: {fileID: 16026142024802780, guid: 1ff93f5e28c5de149a1c1da2a83bdbb6, type: 3}
+      propertyPath: rimBrightness
+      value: 3.22
+      objectReference: {fileID: 0}
+    - target: {fileID: 16026142024802780, guid: 1ff93f5e28c5de149a1c1da2a83bdbb6, type: 3}
+      propertyPath: waveAmplitude
+      value: 0.0268
+      objectReference: {fileID: 0}
+    - target: {fileID: 16026142024802780, guid: 1ff93f5e28c5de149a1c1da2a83bdbb6, type: 3}
+      propertyPath: innerFadePower
+      value: 3.3
+      objectReference: {fileID: 0}
+    - target: {fileID: 16026142024802780, guid: 1ff93f5e28c5de149a1c1da2a83bdbb6, type: 3}
+      propertyPath: innerFadeStart
+      value: 0.1
+      objectReference: {fileID: 0}
+    - target: {fileID: 16026142024802780, guid: 1ff93f5e28c5de149a1c1da2a83bdbb6, type: 3}
       propertyPath: intenseColor.b
       value: 0.2509804
       objectReference: {fileID: 0}
@@ -3441,6 +3465,26 @@ PrefabInstance:
     - target: {fileID: 16026142024802780, guid: 1ff93f5e28c5de149a1c1da2a83bdbb6, type: 3}
       propertyPath: intenseColor.r
       value: 0.9607843
+      objectReference: {fileID: 0}
+    - target: {fileID: 16026142024802780, guid: 1ff93f5e28c5de149a1c1da2a83bdbb6, type: 3}
+      propertyPath: idlePulseAmount
+      value: 0.032
+      objectReference: {fileID: 0}
+    - target: {fileID: 16026142024802780, guid: 1ff93f5e28c5de149a1c1da2a83bdbb6, type: 3}
+      propertyPath: channelPulseAmount
+      value: 0.0427
+      objectReference: {fileID: 0}
+    - target: {fileID: 16026142024802780, guid: 1ff93f5e28c5de149a1c1da2a83bdbb6, type: 3}
+      propertyPath: secondaryWaveCount
+      value: 8
+      objectReference: {fileID: 0}
+    - target: {fileID: 16026142024802780, guid: 1ff93f5e28c5de149a1c1da2a83bdbb6, type: 3}
+      propertyPath: secondaryWaveSpeed
+      value: 5
+      objectReference: {fileID: 0}
+    - target: {fileID: 16026142024802780, guid: 1ff93f5e28c5de149a1c1da2a83bdbb6, type: 3}
+      propertyPath: secondaryWaveAmplitude
+      value: 0.01
       objectReference: {fileID: 0}
     - target: {fileID: 2894776957610741968, guid: 1ff93f5e28c5de149a1c1da2a83bdbb6, type: 3}
       propertyPath: m_Name

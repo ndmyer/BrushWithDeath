@@ -315,6 +315,21 @@ MonoBehaviour:
   idleAlpha: 0.24
   channelStartAlpha: 0.18
   channelFullAlpha: 0.72
+  innerFadeStart: 0.12
+  innerFadeEnd: 0.82
+  innerFadePower: 2.2
+  edgeSoftness: 0.05
+  waveCount: 10
+  waveAmplitude: 0.055
+  secondaryWaveCount: 18
+  secondaryWaveAmplitude: 0.022
+  waveSpeed: 1.85
+  secondaryWaveSpeed: 1.2
+  rimBrightness: 1.2
+  idlePulseAmount: 0.016
+  channelPulseAmount: 0.04
+  pulseSpeed: 1.35
+  boundsPadding: 0.05
   slowColor: {r: 0.27, g: 0.78, b: 0.92, a: 1}
   midColor: {r: 0.93, g: 0.77, b: 0.34, a: 1}
   fastColor: {r: 0.96, g: 0.49, b: 0.25, a: 1}
