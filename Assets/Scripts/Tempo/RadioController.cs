@@ -4,6 +4,8 @@ using UnityEngine.Events;
 
 public class RadioController : MonoBehaviour, IInteractable
 {
+    private static readonly Color MidTempoColor = new Color(0.93f, 0.77f, 0.34f, 1f);
+
     public enum RadioState
     {
         Off,
@@ -42,6 +44,14 @@ public class RadioController : MonoBehaviour, IInteractable
     public bool IsActive => CurrentState != RadioState.Off;
     public float BroadcastRadius => broadcastRadius;
     public TempoBand BroadcastTempo => MapStateToTempo(CurrentState);
+
+    public Color GetTempoColor(TempoBand tempoBand)
+    {
+        if (tempoBand == TempoBand.Mid)
+            return MidTempoColor;
+
+        return GetAuraColor(MapTempoToState(tempoBand));
+    }
 
     private readonly HashSet<TempoReceiver> affectedReceivers = new();
     private readonly List<TempoReceiver> receiversToClear = new();
@@ -241,6 +251,17 @@ public class RadioController : MonoBehaviour, IInteractable
             RadioState.Fast => TempoBand.Fast,
             RadioState.Intense => TempoBand.Intense,
             _ => TempoBand.Mid
+        };
+    }
+
+    private static RadioState MapTempoToState(TempoBand tempoBand)
+    {
+        return tempoBand switch
+        {
+            TempoBand.Slow => RadioState.Slow,
+            TempoBand.Fast => RadioState.Fast,
+            TempoBand.Intense => RadioState.Intense,
+            _ => RadioState.Off
         };
     }
 
