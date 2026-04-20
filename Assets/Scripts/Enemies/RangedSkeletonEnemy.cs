@@ -21,12 +21,12 @@ public class RangedSkeletonEnemy : SkeletonEnemyBase
         if (projectilePrefab == null)
             return false;
 
-        Vector3 spawnPosition = projectileSpawnPoint != null
-            ? projectileSpawnPoint.position
-            : transform.position + (Vector3)(attackDirection * projectileSpawnOffset);
+        Vector3 spawnOrigin = projectileSpawnPoint != null ? projectileSpawnPoint.position : transform.position;
+        Vector3 spawnPosition = spawnOrigin + (Vector3)(attackDirection * projectileSpawnOffset);
 
         SkeletonProjectile projectile = Instantiate(projectilePrefab, spawnPosition, Quaternion.identity);
-        projectile.Initialize(gameObject, attackDirection, projectileSpeed, EffectiveDamage);
+        Vector2 halfwayPoint = Target != null ? (Vector2)Target.position : (Vector2)spawnPosition + attackDirection * projectileSpawnOffset;
+        projectile.InitializeBoomerang(gameObject, attackDirection, projectileSpeed, EffectiveDamage, halfwayPoint);
         return true;
     }
 }
