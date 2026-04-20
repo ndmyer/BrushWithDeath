@@ -77,6 +77,9 @@ public abstract class SkeletonEnemyBase : MonoBehaviour, IKnockbackable
     [SerializeField] private Sprite[] attackDownFrames;
     [SerializeField] private Sprite[] attackUpFrames;
     [SerializeField] private Sprite[] attackSideFrames;
+    [SerializeField] private Sprite attackOverrideSprite;
+    [SerializeField, Min(0.01f)] private float attackOverrideDuration = 0.15f;
+    [SerializeField] private float attackSpinSpeedDegreesPerSecond;
 
     [Header("Events")]
     [SerializeField] private UnityEvent onAttack;
@@ -100,6 +103,7 @@ public abstract class SkeletonEnemyBase : MonoBehaviour, IKnockbackable
     private int activeLoopAnimationSignature = int.MinValue;
     private Vector2 currentAnimationDirection = Vector2.down;
     private Vector2 attackAnimationDirection = Vector2.down;
+    private Quaternion baseLocalRotation;
 
     protected Transform Target => target;
     protected TempoBand CurrentTempo { get; private set; } = TempoBand.Mid;
@@ -107,6 +111,8 @@ public abstract class SkeletonEnemyBase : MonoBehaviour, IKnockbackable
     protected bool IsDead { get; private set; }
     protected float EffectiveDamage => damage * GetTempoModifier(CurrentTempo).damageMultiplier;
     protected float EffectiveAttackRange => attackRange * GetTempoModifier(CurrentTempo).attackRangeMultiplier;
+    protected float MoveSpeed => GetMoveSpeed();
+    protected bool IsAttackOnCooldown => attackCooldownTimer > 0f;
 
     public event Action<SkeletonEnemyBase> Died;
 
@@ -127,6 +133,7 @@ public abstract class SkeletonEnemyBase : MonoBehaviour, IKnockbackable
         CacheReferences();
         idleAnchorPosition = transform.position;
         idleWaitTimer = GetIdlePauseDuration();
+        baseLocalRotation = transform.localRotation;
         ResolveTarget();
     }
 
@@ -306,6 +313,7 @@ public abstract class SkeletonEnemyBase : MonoBehaviour, IKnockbackable
         isPlayingAttackAnimation = false;
         attackAnimationElapsedTime = 0f;
         activeLoopAnimationSignature = int.MinValue;
+        ResetAttackVisualRotation();
         UpdateSpriteAnimation(Vector2.zero);
 
         onDeath?.Invoke();
@@ -341,6 +349,33 @@ public abstract class SkeletonEnemyBase : MonoBehaviour, IKnockbackable
         return TryGetInterface(target, out damageable);
     }
 
+    protected void SetDesiredVelocity(Vector2 velocity)
+    {
+        desiredVelocity = velocity;
+    }
+
+    protected void TriggerAttack(Vector2 attackDirection)
+    {
+        attackCooldownTimer = GetAttackCooldown();
+
+        if (animator != null && !string.IsNullOrWhiteSpace(attackTriggerName))
+            animator.SetTrigger(attackTriggerName);
+
+        BeginAttackAnimation(attackDirection);
+        onAttack?.Invoke();
+    }
+
+    protected bool HasReachedPoint(Vector2 destination)
+    {
+        return HasReachedPoint(transform.position, destination);
+    }
+
+    protected void SetFacingDirection(Vector2 direction)
+    {
+        if (direction.sqrMagnitude > Mathf.Epsilon)
+            FacingDirection = DirectionUtility.ToCardinal(direction);
+    }
+
     protected virtual void TickBehavior(Vector2 toPursuitTarget, Vector2 toActualTarget, float actualDistanceToTarget)
     {
         if (actualDistanceToTarget > EffectiveAttackRange)
@@ -360,14 +395,7 @@ public abstract class SkeletonEnemyBase : MonoBehaviour, IKnockbackable
         if (!PerformAttack(attackDirection, actualDistanceToTarget))
             return;
 
-        attackCooldownTimer = GetAttackCooldown();
-
-        if (animator != null && !string.IsNullOrWhiteSpace(attackTriggerName))
-            animator.SetTrigger(attackTriggerName);
-
-        BeginAttackAnimation(attackDirection);
-
-        onAttack?.Invoke();
+        TriggerAttack(attackDirection);
     }
 
     protected abstract bool PerformAttack(Vector2 attackDirection, float distanceToTarget);
@@ -661,8 +689,15 @@ public abstract class SkeletonEnemyBase : MonoBehaviour, IKnockbackable
 
     private void FinalizeDesiredVelocity()
     {
-        desiredVelocity = ApplySeparation(desiredVelocity);
+        if (ShouldApplySeparation())
+            desiredVelocity = ApplySeparation(desiredVelocity);
+
         UpdateAnimator(desiredVelocity);
+    }
+
+    protected virtual bool ShouldApplySeparation()
+    {
+        return true;
     }
 
     private Vector2 ApplySeparation(Vector2 baseVelocity)
@@ -745,7 +780,7 @@ public abstract class SkeletonEnemyBase : MonoBehaviour, IKnockbackable
 
     private void BeginAttackAnimation(Vector2 attackDirection)
     {
-        if (!HasDirectionalFrames(attackDownFrames, attackUpFrames, attackSideFrames))
+        if (!HasAttackVisual())
             return;
 
         attackAnimationDirection = DirectionUtility.ToCardinal(
@@ -781,6 +816,8 @@ public abstract class SkeletonEnemyBase : MonoBehaviour, IKnockbackable
         if (TryApplyAttackAnimation())
             return;
 
+        ResetAttackVisualRotation();
+
         bool isMoving = velocity.sqrMagnitude > 0.001f;
         Sprite[] frames = isMoving
             ? GetMovementFrames(currentAnimationDirection)
@@ -812,23 +849,57 @@ public abstract class SkeletonEnemyBase : MonoBehaviour, IKnockbackable
             return false;
 
         Sprite[] frames = GetAttackFrames(attackAnimationDirection);
-        if (!HasFrames(frames))
+        bool useOverrideSprite = attackOverrideSprite != null;
+        if (!HasFrames(frames) && !useOverrideSprite)
         {
             isPlayingAttackAnimation = false;
+            ResetAttackVisualRotation();
             return false;
         }
 
-        ApplySpriteFrame(frames, attackAnimationDirection, attackAnimationElapsedTime, attackFramesPerSecond, loop: false);
+        if (useOverrideSprite)
+            ApplyAttackOverrideSprite();
+        else
+            ApplySpriteFrame(frames, attackAnimationDirection, attackAnimationElapsedTime, attackFramesPerSecond, loop: false);
+
+        ApplyAttackSpin();
         attackAnimationElapsedTime += Time.deltaTime;
 
-        if (attackAnimationElapsedTime >= GetAnimationDuration(frames, attackFramesPerSecond))
+        float attackDuration = useOverrideSprite
+            ? attackOverrideDuration
+            : GetAnimationDuration(frames, attackFramesPerSecond);
+
+        if (attackAnimationElapsedTime >= attackDuration)
         {
             isPlayingAttackAnimation = false;
             attackAnimationElapsedTime = 0f;
             activeLoopAnimationSignature = int.MinValue;
+            ResetAttackVisualRotation();
         }
 
         return true;
+    }
+
+    private void ApplyAttackOverrideSprite()
+    {
+        if (spriteRenderer != null && attackOverrideSprite != null)
+            spriteRenderer.sprite = attackOverrideSprite;
+    }
+
+    private void ApplyAttackSpin()
+    {
+        if (Mathf.Abs(attackSpinSpeedDegreesPerSecond) <= Mathf.Epsilon)
+        {
+            ResetAttackVisualRotation();
+            return;
+        }
+
+        transform.localRotation = baseLocalRotation * Quaternion.Euler(0f, 0f, attackAnimationElapsedTime * attackSpinSpeedDegreesPerSecond);
+    }
+
+    private void ResetAttackVisualRotation()
+    {
+        transform.localRotation = baseLocalRotation;
     }
 
     private void ApplySpriteFrame(Sprite[] frames, Vector2 direction, float elapsedTime, float framesPerSecond, bool loop)
@@ -928,6 +999,11 @@ public abstract class SkeletonEnemyBase : MonoBehaviour, IKnockbackable
     private bool HasDirectionalFrames(Sprite[] downFrames, Sprite[] upFrames, Sprite[] sideFrames)
     {
         return HasFrames(downFrames) || HasFrames(upFrames) || HasFrames(sideFrames);
+    }
+
+    private bool HasAttackVisual()
+    {
+        return attackOverrideSprite != null || HasDirectionalFrames(attackDownFrames, attackUpFrames, attackSideFrames);
     }
 
     private Sprite[] GetFirstAvailableFrames(params Sprite[][] frameSets)

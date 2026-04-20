@@ -193,8 +193,8 @@ MonoBehaviour:
   moveSpeed: 2.5
   knockbackDistance: 3
   damage: 1
-  attackSpeed: 1.2
-  attackRange: 1.36
+  attackSpeed: 0.5
+  attackRange: 2
   detectionRange: 6
   containmentInsetDistance: 0.1
   knockbackDuration: 0.12
@@ -204,6 +204,8 @@ MonoBehaviour:
   idlePauseDurationRange: {x: 1.25, y: 2.5}
   idleArrivalDistance: 0.1
   idlePointSampleAttempts: 8
+  separationRadius: 0.6
+  separationStrength: 3
   slowTempo:
     moveSpeedMultiplier: 0.5
     knockbackMultiplier: 0.5
@@ -293,9 +295,17 @@ MonoBehaviour:
   attackDownFrames: []
   attackUpFrames: []
   attackSideFrames: []
+  attackOverrideSprite: {fileID: -1821540249146636085, guid: 27ebad30a4635e84e8991511fa5d66ba, type: 3}
+  attackOverrideDuration: 0.55
+  attackSpinSpeedDegreesPerSecond: 1080
   onAttack:
     m_PersistentCalls:
       m_Calls: []
   onDeath:
     m_PersistentCalls:
       m_Calls: []
+  lungeSpeed: 6.5
+  returnSpeed: 5
+  lungeArrivalDistance: 0.05
+  damageContactRadius: 0.4
+  minimumLungeDistance: 0.4

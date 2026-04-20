@@ -199,7 +199,7 @@ MonoBehaviour:
   knockbackDistance: 1
   damage: 1
   attackSpeed: 0.7
-  attackRange: 2.83
+  attackRange: 4
   detectionRange: 6
   containmentInsetDistance: 0.1
   knockbackDuration: 0.12
@@ -209,6 +209,8 @@ MonoBehaviour:
   idlePauseDurationRange: {x: 1.25, y: 2.5}
   idleArrivalDistance: 0.1
   idlePointSampleAttempts: 8
+  separationRadius: 0.6
+  separationStrength: 3
   slowTempo:
     moveSpeedMultiplier: 0.5
     knockbackMultiplier: 0.5
@@ -310,6 +312,9 @@ MonoBehaviour:
   - {fileID: 1414164451399874672, guid: c3acf761a5a854e499a98502256ea92e, type: 3}
   - {fileID: 5436375147481212293, guid: c3acf761a5a854e499a98502256ea92e, type: 3}
   - {fileID: 5383856057938155639, guid: c3acf761a5a854e499a98502256ea92e, type: 3}
+  attackOverrideSprite: {fileID: 0}
+  attackOverrideDuration: 0.15
+  attackSpinSpeedDegreesPerSecond: 0
   onAttack:
     m_PersistentCalls:
       m_Calls: []
