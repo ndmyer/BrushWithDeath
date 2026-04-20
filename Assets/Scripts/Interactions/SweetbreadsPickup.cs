@@ -1,10 +1,12 @@
 using UnityEngine;
+using UnityEngine.Events;
 
 [DisallowMultipleComponent]
 [RequireComponent(typeof(Collider2D))]
 public class SweetbreadsPickup : MonoBehaviour
 {
     [SerializeField, Min(0f)] private float healAmount = 1f;
+    [SerializeField] private UnityEvent onCollected;
 
     private bool hasBeenConsumed;
 
@@ -23,8 +25,12 @@ public class SweetbreadsPickup : MonoBehaviour
         if (hasBeenConsumed || !TryGetPlayerHealth(other, out PlayerHealth playerHealth))
             return;
 
+        if (playerHealth.IsDead)
+            return;
+
         hasBeenConsumed = true;
         playerHealth.Heal(healAmount);
+        onCollected?.Invoke();
         Destroy(gameObject);
     }
 

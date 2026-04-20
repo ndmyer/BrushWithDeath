@@ -3575,6 +3575,10 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 6149729211161500281, guid: 1ff93f5e28c5de149a1c1da2a83bdbb6, type: 3}
+      propertyPath: lanternKnockbackAmount
+      value: 2
+      objectReference: {fileID: 0}
     - target: {fileID: 6758974418478071990, guid: 1ff93f5e28c5de149a1c1da2a83bdbb6, type: 3}
       propertyPath: moveSpeed
       value: 4

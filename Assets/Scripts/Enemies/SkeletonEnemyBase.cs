@@ -9,6 +9,12 @@ using Random = UnityEngine.Random;
 [RequireComponent(typeof(Collider2D))]
 public abstract class SkeletonEnemyBase : MonoBehaviour, IKnockbackable
 {
+    public enum DeathCause
+    {
+        Unknown,
+        Marigold
+    }
+
     private static readonly List<SkeletonEnemyBase> ActiveEnemies = new();
 
     [Serializable]
@@ -115,6 +121,9 @@ public abstract class SkeletonEnemyBase : MonoBehaviour, IKnockbackable
     protected bool IsAttackOnCooldown => attackCooldownTimer > 0f;
 
     public event Action<SkeletonEnemyBase> Died;
+    public event Action<SkeletonEnemyBase, DeathCause> DiedWithCause;
+
+    public static event Action<SkeletonEnemyBase, DeathCause> AnyEnemyDied;
 
     protected virtual void Reset()
     {
@@ -280,6 +289,11 @@ public abstract class SkeletonEnemyBase : MonoBehaviour, IKnockbackable
 
     public void Kill()
     {
+        Kill(DeathCause.Unknown);
+    }
+
+    public void Kill(DeathCause cause)
+    {
         if (IsDead)
             return;
 
@@ -318,6 +332,8 @@ public abstract class SkeletonEnemyBase : MonoBehaviour, IKnockbackable
 
         onDeath?.Invoke();
         Died?.Invoke(this);
+        DiedWithCause?.Invoke(this, cause);
+        AnyEnemyDied?.Invoke(this, cause);
 
         if (destroyAfterDeath)
             Destroy(gameObject, deathCleanupDelay);
@@ -482,7 +498,7 @@ public abstract class SkeletonEnemyBase : MonoBehaviour, IKnockbackable
         MarigoldHazard marigoldHazard = other.GetComponentInParent<MarigoldHazard>();
         if (marigoldHazard != null && marigoldHazard.IsActive)
         {
-            Kill();
+            Kill(DeathCause.Marigold);
             return;
         }
 
@@ -491,7 +507,7 @@ public abstract class SkeletonEnemyBase : MonoBehaviour, IKnockbackable
             torch.Type == LightableTorch.TorchType.Marigold &&
             torch.IsLit)
         {
-            Kill();
+            Kill(DeathCause.Marigold);
         }
     }
 
