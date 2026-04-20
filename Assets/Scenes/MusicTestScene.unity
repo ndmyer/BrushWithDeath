@@ -813,6 +813,16 @@ MonoBehaviour:
   animator: {fileID: 0}
   pistaController: {fileID: 44535988}
   tempoService: {fileID: 1608435383}
+  tempoLoopFrames:
+  - {fileID: -8394188236051668318, guid: 93def875cebaff24dbedab4633d2496c, type: 3}
+  - {fileID: 6987577786473993973, guid: 93def875cebaff24dbedab4633d2496c, type: 3}
+  - {fileID: -4863852149840813467, guid: 93def875cebaff24dbedab4633d2496c, type: 3}
+  - {fileID: 1407676818599823505, guid: 93def875cebaff24dbedab4633d2496c, type: 3}
+  - {fileID: -2594497769646546591, guid: 93def875cebaff24dbedab4633d2496c, type: 3}
+  - {fileID: -2562069600058633600, guid: 93def875cebaff24dbedab4633d2496c, type: 3}
+  - {fileID: -2655955990792632884, guid: 93def875cebaff24dbedab4633d2496c, type: 3}
+  - {fileID: 227621162165317961, guid: 93def875cebaff24dbedab4633d2496c, type: 3}
+  tempoLoopFramesPerSecond: 12
 --- !u!114 &887717960
 MonoBehaviour:
   m_ObjectHideFlags: 0

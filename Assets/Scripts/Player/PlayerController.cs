@@ -40,6 +40,10 @@ public class PlayerController : MonoBehaviour
     [Header("Actions")]
     [SerializeField, Min(0f)] private float lanternUseCooldown = 0.25f;
 
+    [Header("Tempo Visuals")]
+    [SerializeField] private Sprite[] tempoLoopFrames;
+    [SerializeField, Min(0f)] private float tempoLoopFramesPerSecond = 12f;
+
     private PlayerInputReader inputReader;
     private PlayerMotor motor;
     private PlayerInteractor interactor;
@@ -47,6 +51,8 @@ public class PlayerController : MonoBehaviour
     private bool hasLanternSwingTrigger;
     private bool hasIsDeadBool;
     private float nextLanternUseTime = float.NegativeInfinity;
+    private bool isTempoLoopActive;
+    private float tempoLoopElapsedTime;
 
     public PlayerState CurrentState { get; private set; } = PlayerState.Normal;
 
@@ -83,6 +89,11 @@ public class PlayerController : MonoBehaviour
         HandleStateLogic();
         UpdateAnimator();
         inputReader.ClearFrameButtons();
+    }
+
+    private void LateUpdate()
+    {
+        UpdateTempoLoopVisual();
     }
 
     private void HandleStateLogic()
@@ -314,6 +325,73 @@ public class PlayerController : MonoBehaviour
     {
         if (animator != null && hasIsDeadBool)
             animator.SetBool(IsDeadBoolName, CurrentState == PlayerState.Dead);
+    }
+
+    private void UpdateTempoLoopVisual()
+    {
+        if (spriteRenderer == null || !HasTempoLoopFrames())
+            return;
+
+        if (CurrentState != PlayerState.PlayingTempo)
+        {
+            isTempoLoopActive = false;
+            tempoLoopElapsedTime = 0f;
+            return;
+        }
+
+        if (!isTempoLoopActive)
+        {
+            isTempoLoopActive = true;
+            tempoLoopElapsedTime = 0f;
+        }
+        else
+        {
+            tempoLoopElapsedTime += Time.deltaTime;
+        }
+
+        Sprite nextFrame = GetTempoLoopFrame();
+        if (nextFrame != null)
+            spriteRenderer.sprite = nextFrame;
+    }
+
+    private Sprite GetTempoLoopFrame()
+    {
+        if (!HasTempoLoopFrames())
+            return null;
+
+        int frameIndex = 0;
+        if (tempoLoopFrames.Length > 1 && tempoLoopFramesPerSecond > Mathf.Epsilon)
+            frameIndex = Mathf.FloorToInt(tempoLoopElapsedTime * tempoLoopFramesPerSecond) % tempoLoopFrames.Length;
+
+        return tempoLoopFrames[frameIndex] != null ? tempoLoopFrames[frameIndex] : GetFirstTempoLoopFrame();
+    }
+
+    private bool HasTempoLoopFrames()
+    {
+        if (tempoLoopFrames == null || tempoLoopFrames.Length == 0)
+            return false;
+
+        for (int i = 0; i < tempoLoopFrames.Length; i++)
+        {
+            if (tempoLoopFrames[i] != null)
+                return true;
+        }
+
+        return false;
+    }
+
+    private Sprite GetFirstTempoLoopFrame()
+    {
+        if (tempoLoopFrames == null)
+            return null;
+
+        for (int i = 0; i < tempoLoopFrames.Length; i++)
+        {
+            if (tempoLoopFrames[i] != null)
+                return tempoLoopFrames[i];
+        }
+
+        return null;
     }
 
     private float GetDeathClipDuration()
