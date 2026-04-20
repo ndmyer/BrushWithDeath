@@ -6715,8 +6715,19 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 5571601291338710995, guid: e688d001c642a1f4c945c246e5dfba41, type: 3}
       propertyPath: dialogueText
-      value: "Lantern Swing \u2013 Any Face Button\r\nPista Mode - Hold Right Trigger\r\nPista
-        Flame Possess/Jump - In Pista Mode Aim Joystick towards a Flame                                                                                                                                                        
+      value: 
+      objectReference: {fileID: 0}
+    - target: {fileID: 5571601291338710995, guid: e688d001c642a1f4c945c246e5dfba41, type: 3}
+      propertyPath: dialogueLines.Array.size
+      value: 2
+      objectReference: {fileID: 0}
+    - target: {fileID: 5571601291338710995, guid: e688d001c642a1f4c945c246e5dfba41, type: 3}
+      propertyPath: dialogueLines.Array.data[0].text
+      value: "Lantern Swing \u2013 Any Face Button\r\nPista Mode - Hold Right Trigger"
+      objectReference: {fileID: 0}
+    - target: {fileID: 5571601291338710995, guid: e688d001c642a1f4c945c246e5dfba41, type: 3}
+      propertyPath: dialogueLines.Array.data[1].text
+      value: "Pista Flame Possess/Jump - In Pista Mode Aim Joystick towards a Flame                                                                                                                                                        
         Pista Return \u2013 Tap Right Trigger twice"
       objectReference: {fileID: 0}
     - target: {fileID: 6864064947278412041, guid: e688d001c642a1f4c945c246e5dfba41, type: 3}
@@ -10062,6 +10073,10 @@ PrefabInstance:
     - target: {fileID: 5422746271883051085, guid: 5bd3d46b96b23fc43ae6fbef9bcf9813, type: 3}
       propertyPath: portraitOverride
       value: 
+      objectReference: {fileID: 0}
+    - target: {fileID: 5422746271883051085, guid: 5bd3d46b96b23fc43ae6fbef9bcf9813, type: 3}
+      propertyPath: dialogueLines.Array.size
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 6331688727121655574, guid: 5bd3d46b96b23fc43ae6fbef9bcf9813, type: 3}
       propertyPath: m_Name
@@ -73935,7 +73950,7 @@ Tilemap:
     second:
       serializedVersion: 2
       m_TileIndex: 5
-      m_TileSpriteIndex: 18
+      m_TileSpriteIndex: 20
       m_TileMatrixIndex: 0
       m_TileColorIndex: 0
       m_TileObjectToInstantiateIndex: 65535
@@ -74105,7 +74120,7 @@ Tilemap:
     second:
       serializedVersion: 2
       m_TileIndex: 4
-      m_TileSpriteIndex: 17
+      m_TileSpriteIndex: 18
       m_TileMatrixIndex: 0
       m_TileColorIndex: 0
       m_TileObjectToInstantiateIndex: 65535
@@ -76125,7 +76140,7 @@ Tilemap:
     second:
       serializedVersion: 2
       m_TileIndex: 7
-      m_TileSpriteIndex: 16
+      m_TileSpriteIndex: 17
       m_TileMatrixIndex: 0
       m_TileColorIndex: 0
       m_TileObjectToInstantiateIndex: 65535
@@ -77930,16 +77945,16 @@ Tilemap:
     m_Data: {fileID: -1136836383, guid: 9d87807971c0d4944ad7196f106be37e, type: 3}
   - m_RefCount: 7
     m_Data: {fileID: -2529412105377458984, guid: 487de8756e40c9943aff1ad2738f19e4, type: 3}
+  - m_RefCount: 0
+    m_Data: {fileID: 0}
   - m_RefCount: 1
     m_Data: {fileID: 4769781710702522040, guid: 487de8756e40c9943aff1ad2738f19e4, type: 3}
   - m_RefCount: 1
     m_Data: {fileID: 6792767661825791818, guid: 487de8756e40c9943aff1ad2738f19e4, type: 3}
-  - m_RefCount: 1
-    m_Data: {fileID: -3426935705888724269, guid: 487de8756e40c9943aff1ad2738f19e4, type: 3}
   - m_RefCount: 3
     m_Data: {fileID: 149659264, guid: 9d87807971c0d4944ad7196f106be37e, type: 3}
-  - m_RefCount: 0
-    m_Data: {fileID: 0}
+  - m_RefCount: 1
+    m_Data: {fileID: -3426935705888724269, guid: 487de8756e40c9943aff1ad2738f19e4, type: 3}
   - m_RefCount: 2
     m_Data: {fileID: -875064961, guid: 9d87807971c0d4944ad7196f106be37e, type: 3}
   m_TileMatrixArray:

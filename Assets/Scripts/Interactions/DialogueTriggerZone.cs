@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using UnityEngine;
 
 [DisallowMultipleComponent]
@@ -5,6 +6,7 @@ using UnityEngine;
 public class DialogueTriggerZone : MonoBehaviour
 {
     [SerializeField, TextArea(2, 6)] private string dialogueText = "Pista has something to say.";
+    [SerializeField] private DialogueLine[] dialogueLines;
     [SerializeField] private Sprite portraitOverride;
     [SerializeField] private bool useTypewriter = true;
     [SerializeField, Min(0.5f)] private float displayDuration = 3.5f;
@@ -28,7 +30,11 @@ public class DialogueTriggerZone : MonoBehaviour
 
     private void OnTriggerEnter2D(Collider2D other)
     {
-        if (hasTriggered || string.IsNullOrWhiteSpace(dialogueText))
+        if (hasTriggered)
+            return;
+
+        DialogueLine[] lines = BuildDialogueLines();
+        if (lines.Length == 0)
             return;
 
         if (!TryGetPlayer(other, out _))
@@ -41,8 +47,42 @@ public class DialogueTriggerZone : MonoBehaviour
             return;
         }
 
-        dialogueBox.ShowPista(dialogueText, ResolvePortrait(dialogueBox), displayDuration, useTypewriter);
+        dialogueBox.ShowPista(lines, ResolvePortrait(dialogueBox), useTypewriter);
         hasTriggered = true;
+    }
+
+    private DialogueLine[] BuildDialogueLines()
+    {
+        if (dialogueLines != null && dialogueLines.Length > 0)
+        {
+            List<DialogueLine> resolvedLines = new();
+            foreach (DialogueLine line in dialogueLines)
+            {
+                if (!line.HasText())
+                    continue;
+
+                resolvedLines.Add(new DialogueLine
+                {
+                    text = line.text,
+                    duration = line.ResolveDuration(displayDuration),
+                });
+            }
+
+            if (resolvedLines.Count > 0)
+                return resolvedLines.ToArray();
+        }
+
+        if (string.IsNullOrWhiteSpace(dialogueText))
+            return System.Array.Empty<DialogueLine>();
+
+        return new[]
+        {
+            new DialogueLine
+            {
+                text = dialogueText,
+                duration = displayDuration,
+            }
+        };
     }
 
     private Sprite ResolvePortrait(DialogueBoxUI dialogueBox)

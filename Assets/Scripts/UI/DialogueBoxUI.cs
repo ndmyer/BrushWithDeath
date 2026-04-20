@@ -55,14 +55,24 @@ public class DialogueBoxUI : MonoBehaviour
         CacheReferences();
     }
 
+    public void ShowSign(DialogueLine[] lines, Sprite portraitOverride = null, bool useTypewriter = false)
+    {
+        Show(lines, portraitOverride != null ? portraitOverride : GetDefaultSignPortrait(), useTypewriter);
+    }
+
     public void ShowSign(string message, Sprite portraitOverride = null, float duration = -1f, bool useTypewriter = false)
     {
-        Show(message, portraitOverride != null ? portraitOverride : GetDefaultSignPortrait(), duration, useTypewriter);
+        ShowSign(CreateSingleLineSequence(message, duration), portraitOverride, useTypewriter);
+    }
+
+    public void ShowPista(DialogueLine[] lines, Sprite portraitOverride = null, bool useTypewriter = true)
+    {
+        Show(lines, portraitOverride != null ? portraitOverride : GetDefaultPistaPortrait(), useTypewriter);
     }
 
     public void ShowPista(string message, Sprite portraitOverride = null, float duration = -1f, bool useTypewriter = true)
     {
-        Show(message, portraitOverride != null ? portraitOverride : GetDefaultPistaPortrait(), duration, useTypewriter);
+        ShowPista(CreateSingleLineSequence(message, duration), portraitOverride, useTypewriter);
     }
 
     public Sprite GetDefaultSignPortrait()
@@ -100,7 +110,7 @@ public class DialogueBoxUI : MonoBehaviour
         SetVisible(false);
     }
 
-    private void Show(string message, Sprite portrait, float duration, bool useTypewriter)
+    private void Show(DialogueLine[] lines, Sprite portrait, bool useTypewriter)
     {
         CacheReferences();
 
@@ -110,7 +120,7 @@ public class DialogueBoxUI : MonoBehaviour
             return;
         }
 
-        if (!CanDisplayText(message))
+        if (!CanDisplayLines(lines))
         {
             Debug.LogWarning("DialogueBoxUI is missing a TextMeshProUGUI reference.", this);
             return;
@@ -125,22 +135,27 @@ public class DialogueBoxUI : MonoBehaviour
 
         SetVisible(true);
 
-        float resolvedDuration = duration > 0f ? duration : defaultDisplayDuration;
         if (displayRoutine != null)
             StopCoroutine(displayRoutine);
 
-        displayRoutine = StartCoroutine(DisplayRoutine(message, resolvedDuration, useTypewriter));
+        displayRoutine = StartCoroutine(DisplayRoutine(lines, useTypewriter));
     }
 
-    private IEnumerator DisplayRoutine(string message, float duration, bool useTypewriter)
+    private IEnumerator DisplayRoutine(DialogueLine[] lines, bool useTypewriter)
     {
-        dialogueText.text = message;
-        dialogueText.maxVisibleCharacters = int.MaxValue;
+        foreach (DialogueLine line in lines)
+        {
+            if (!line.HasText())
+                continue;
 
-        if (useTypewriter)
-            yield return PlayTypewriter(message);
+            dialogueText.text = line.text;
+            dialogueText.maxVisibleCharacters = int.MaxValue;
 
-        yield return new WaitForSecondsRealtime(duration);
+            if (useTypewriter)
+                yield return PlayTypewriter(line.text);
+
+            yield return new WaitForSecondsRealtime(line.ResolveDuration(defaultDisplayDuration));
+        }
 
         displayRoutine = null;
         SetVisible(false);
@@ -165,12 +180,18 @@ public class DialogueBoxUI : MonoBehaviour
             portraitImage = GetComponentInChildren<Image>(true);
     }
 
-    private bool CanDisplayText(string message)
+    private bool CanDisplayLines(DialogueLine[] lines)
     {
-        if (string.IsNullOrWhiteSpace(message))
+        if (dialogueText == null || lines == null || lines.Length == 0)
             return false;
 
-        return dialogueText != null;
+        foreach (DialogueLine line in lines)
+        {
+            if (line.HasText())
+                return true;
+        }
+
+        return false;
     }
 
     private IEnumerator PlayTypewriter(string message)
@@ -196,6 +217,18 @@ public class DialogueBoxUI : MonoBehaviour
         }
 
         dialogueText.maxVisibleCharacters = int.MaxValue;
+    }
+
+    private DialogueLine[] CreateSingleLineSequence(string message, float duration)
+    {
+        return new[]
+        {
+            new DialogueLine
+            {
+                text = message,
+                duration = duration > 0f ? duration : defaultDisplayDuration,
+            }
+        };
     }
 
     private void SetVisible(bool isVisible)

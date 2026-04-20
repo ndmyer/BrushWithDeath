@@ -1,9 +1,11 @@
+using System.Collections.Generic;
 using UnityEngine;
 
 [DisallowMultipleComponent]
 public class SignDialogueInteractable : MonoBehaviour, IInteractable
 {
     [SerializeField, TextArea(2, 6)] private string dialogueText = "A weathered sign creaks in the wind.";
+    [SerializeField] private DialogueLine[] dialogueLines;
     [SerializeField] private Sprite portraitOverride;
     [SerializeField] private bool useSpriteRendererPortrait = true;
     [SerializeField] private bool useTypewriter;
@@ -11,7 +13,8 @@ public class SignDialogueInteractable : MonoBehaviour, IInteractable
 
     public void Interact(PlayerController player)
     {
-        if (string.IsNullOrWhiteSpace(dialogueText))
+        DialogueLine[] lines = BuildDialogueLines();
+        if (lines.Length == 0)
             return;
 
         DialogueBoxUI dialogueBox = DialogueBoxUI.Instance;
@@ -21,7 +24,41 @@ public class SignDialogueInteractable : MonoBehaviour, IInteractable
             return;
         }
 
-        dialogueBox.ShowSign(dialogueText, ResolvePortrait(dialogueBox), displayDuration, useTypewriter);
+        dialogueBox.ShowSign(lines, ResolvePortrait(dialogueBox), useTypewriter);
+    }
+
+    private DialogueLine[] BuildDialogueLines()
+    {
+        if (dialogueLines != null && dialogueLines.Length > 0)
+        {
+            List<DialogueLine> resolvedLines = new();
+            foreach (DialogueLine line in dialogueLines)
+            {
+                if (!line.HasText())
+                    continue;
+
+                resolvedLines.Add(new DialogueLine
+                {
+                    text = line.text,
+                    duration = line.ResolveDuration(displayDuration),
+                });
+            }
+
+            if (resolvedLines.Count > 0)
+                return resolvedLines.ToArray();
+        }
+
+        if (string.IsNullOrWhiteSpace(dialogueText))
+            return System.Array.Empty<DialogueLine>();
+
+        return new[]
+        {
+            new DialogueLine
+            {
+                text = dialogueText,
+                duration = displayDuration,
+            }
+        };
     }
 
     private Sprite ResolvePortrait(DialogueBoxUI dialogueBox)
