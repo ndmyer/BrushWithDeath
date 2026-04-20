@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Events;
 using UnityEngine.Serialization;
@@ -8,6 +9,8 @@ using Random = UnityEngine.Random;
 [RequireComponent(typeof(Collider2D))]
 public abstract class SkeletonEnemyBase : MonoBehaviour, IKnockbackable
 {
+    private static readonly List<SkeletonEnemyBase> ActiveEnemies = new();
+
     [Serializable]
     private class TempoStatModifier
     {
@@ -23,6 +26,7 @@ public abstract class SkeletonEnemyBase : MonoBehaviour, IKnockbackable
     [SerializeField] private TempoService tempoService;
     [SerializeField] private Rigidbody2D body;
     [SerializeField] private Animator animator;
+    [SerializeField] private SpriteRenderer spriteRenderer;
     [SerializeField] private Collider2D hitbox;
 
     [Header("Stats")]
@@ -45,6 +49,10 @@ public abstract class SkeletonEnemyBase : MonoBehaviour, IKnockbackable
     [SerializeField, Min(0f)] private float idleArrivalDistance = 0.1f;
     [SerializeField, Min(1)] private int idlePointSampleAttempts = 8;
 
+    [Header("Separation")]
+    [SerializeField, Min(0f)] private float separationRadius = 0.6f;
+    [SerializeField, Min(0f)] private float separationStrength = 3f;
+
     [Header("Tempo")]
     [SerializeField] private TempoStatModifier slowTempo = new();
     [SerializeField] private TempoStatModifier midTempo = new();
@@ -55,6 +63,20 @@ public abstract class SkeletonEnemyBase : MonoBehaviour, IKnockbackable
     [SerializeField] private string attackTriggerName = "Attack";
     [SerializeField] private string deathTriggerName = "Die";
     [SerializeField] private string deadBoolName = "IsDead";
+    [SerializeField] private bool sideFramesFaceRight = true;
+    [SerializeField, Min(0f)] private float idleFramesPerSecond = 8f;
+    [SerializeField, Min(0f)] private float moveFramesPerSecond = 10f;
+    [SerializeField, Min(0f)] private float attackFramesPerSecond = 12f;
+    [SerializeField] private Sprite deadSprite;
+    [SerializeField] private Sprite[] idleDownFrames;
+    [SerializeField] private Sprite[] idleUpFrames;
+    [SerializeField] private Sprite[] idleSideFrames;
+    [SerializeField] private Sprite[] moveDownFrames;
+    [SerializeField] private Sprite[] moveUpFrames;
+    [SerializeField] private Sprite[] moveSideFrames;
+    [SerializeField] private Sprite[] attackDownFrames;
+    [SerializeField] private Sprite[] attackUpFrames;
+    [SerializeField] private Sprite[] attackSideFrames;
 
     [Header("Events")]
     [SerializeField] private UnityEvent onAttack;
@@ -69,8 +91,15 @@ public abstract class SkeletonEnemyBase : MonoBehaviour, IKnockbackable
     private float attackCooldownTimer;
     private float idleWaitTimer;
     private float knockbackTimer;
+    private float loopAnimationElapsedTime;
+    private float attackAnimationElapsedTime;
+    private float horizontalVisualSign = 1f;
     private bool hasIdleDestination;
     private bool hasContainmentBounds;
+    private bool isPlayingAttackAnimation;
+    private int activeLoopAnimationSignature = int.MinValue;
+    private Vector2 currentAnimationDirection = Vector2.down;
+    private Vector2 attackAnimationDirection = Vector2.down;
 
     protected Transform Target => target;
     protected TempoBand CurrentTempo { get; private set; } = TempoBand.Mid;
@@ -103,11 +132,15 @@ public abstract class SkeletonEnemyBase : MonoBehaviour, IKnockbackable
 
     protected virtual void OnEnable()
     {
+        ActiveEnemies.Remove(this);
+        ActiveEnemies.Add(this);
         SubscribeToTempo();
     }
 
     protected virtual void OnDisable()
     {
+        ActiveEnemies.Remove(this);
+
         if (tempoService != null)
             tempoService.TempoUpdated -= HandleTempoUpdated;
     }
@@ -137,7 +170,7 @@ public abstract class SkeletonEnemyBase : MonoBehaviour, IKnockbackable
         if (!ResolveTarget())
         {
             TickIdleMovement((Vector2)transform.position);
-            UpdateAnimator(desiredVelocity);
+            FinalizeDesiredVelocity();
             return;
         }
 
@@ -155,7 +188,7 @@ public abstract class SkeletonEnemyBase : MonoBehaviour, IKnockbackable
                 ? toReturnTarget.normalized * GetMoveSpeed()
                 : Vector2.zero;
 
-            UpdateAnimator(desiredVelocity);
+            FinalizeDesiredVelocity();
             return;
         }
 
@@ -163,7 +196,7 @@ public abstract class SkeletonEnemyBase : MonoBehaviour, IKnockbackable
         if (!targetInDetectionRange)
         {
             TickIdleMovement(currentPosition);
-            UpdateAnimator(desiredVelocity);
+            FinalizeDesiredVelocity();
             return;
         }
 
@@ -176,7 +209,7 @@ public abstract class SkeletonEnemyBase : MonoBehaviour, IKnockbackable
         {
             TriggerIdleWaitIfNeeded();
             TickIdleMovement(currentPosition);
-            UpdateAnimator(desiredVelocity);
+            FinalizeDesiredVelocity();
             return;
         }
 
@@ -188,7 +221,7 @@ public abstract class SkeletonEnemyBase : MonoBehaviour, IKnockbackable
         Vector2 toPursuitTarget = pursuitTarget - currentPosition;
 
         TickBehavior(toPursuitTarget, toActualTarget, distanceToActualTarget);
-        UpdateAnimator(desiredVelocity);
+        FinalizeDesiredVelocity();
     }
 
     protected virtual void FixedUpdate()
@@ -270,6 +303,11 @@ public abstract class SkeletonEnemyBase : MonoBehaviour, IKnockbackable
                 animator.SetTrigger(deathTriggerName);
         }
 
+        isPlayingAttackAnimation = false;
+        attackAnimationElapsedTime = 0f;
+        activeLoopAnimationSignature = int.MinValue;
+        UpdateSpriteAnimation(Vector2.zero);
+
         onDeath?.Invoke();
         Died?.Invoke(this);
 
@@ -327,6 +365,8 @@ public abstract class SkeletonEnemyBase : MonoBehaviour, IKnockbackable
         if (animator != null && !string.IsNullOrWhiteSpace(attackTriggerName))
             animator.SetTrigger(attackTriggerName);
 
+        BeginAttackAnimation(attackDirection);
+
         onAttack?.Invoke();
     }
 
@@ -361,6 +401,9 @@ public abstract class SkeletonEnemyBase : MonoBehaviour, IKnockbackable
 
         if (animator == null)
             animator = GetComponentInChildren<Animator>();
+
+        if (spriteRenderer == null)
+            spriteRenderer = GetComponentInChildren<SpriteRenderer>();
     }
 
     private void SubscribeToTempo()
@@ -616,6 +659,56 @@ public abstract class SkeletonEnemyBase : MonoBehaviour, IKnockbackable
         return 1f / Mathf.Max(0.01f, effectiveAttackSpeed);
     }
 
+    private void FinalizeDesiredVelocity()
+    {
+        desiredVelocity = ApplySeparation(desiredVelocity);
+        UpdateAnimator(desiredVelocity);
+    }
+
+    private Vector2 ApplySeparation(Vector2 baseVelocity)
+    {
+        if (separationRadius <= Mathf.Epsilon || separationStrength <= Mathf.Epsilon)
+            return baseVelocity;
+
+        Vector2 currentPosition = transform.position;
+        float separationRadiusSquared = separationRadius * separationRadius;
+        Vector2 separationOffset = Vector2.zero;
+
+        for (int i = 0; i < ActiveEnemies.Count; i++)
+        {
+            SkeletonEnemyBase other = ActiveEnemies[i];
+            if (other == null || other == this || other.IsDead)
+                continue;
+
+            Vector2 offset = currentPosition - (Vector2)other.transform.position;
+            float distanceSquared = offset.sqrMagnitude;
+            if (distanceSquared > separationRadiusSquared)
+                continue;
+
+            if (distanceSquared <= 0.0001f)
+                offset = GetSeparationFallbackDirection(other);
+
+            float distance = Mathf.Sqrt(Mathf.Max(distanceSquared, 0.0001f));
+            float weight = 1f - Mathf.Clamp01(distance / separationRadius);
+            separationOffset += offset.normalized * weight;
+        }
+
+        if (separationOffset.sqrMagnitude <= Mathf.Epsilon)
+            return baseVelocity;
+
+        float separationSpeed = Mathf.Min(GetMoveSpeed(), separationOffset.magnitude * separationStrength);
+        Vector2 separationVelocity = separationOffset.normalized * separationSpeed;
+        return Vector2.ClampMagnitude(baseVelocity + separationVelocity, GetMoveSpeed());
+    }
+
+    private Vector2 GetSeparationFallbackDirection(SkeletonEnemyBase other)
+    {
+        int otherId = other != null ? other.GetInstanceID() : 0;
+        int hash = GetInstanceID() ^ (otherId * 397);
+        float angle = Mathf.Repeat(hash * 0.61803398875f, 1f) * Mathf.PI * 2f;
+        return new Vector2(Mathf.Cos(angle), Mathf.Sin(angle));
+    }
+
     private TempoStatModifier GetTempoModifier(TempoBand tempo)
     {
         TempoStatModifier modifier = tempo switch
@@ -632,7 +725,10 @@ public abstract class SkeletonEnemyBase : MonoBehaviour, IKnockbackable
     private void UpdateAnimator(Vector2 velocity)
     {
         if (animator == null)
+        {
+            UpdateSpriteAnimation(velocity);
             return;
+        }
 
         Vector2 moveDirection = velocity.sqrMagnitude > Mathf.Epsilon
             ? velocity.normalized
@@ -643,6 +739,234 @@ public abstract class SkeletonEnemyBase : MonoBehaviour, IKnockbackable
         animator.SetFloat("FaceX", FacingDirection.x);
         animator.SetFloat("FaceY", FacingDirection.y);
         animator.SetBool("IsMoving", velocity.sqrMagnitude > 0.001f);
+
+        UpdateSpriteAnimation(velocity);
+    }
+
+    private void BeginAttackAnimation(Vector2 attackDirection)
+    {
+        if (!HasDirectionalFrames(attackDownFrames, attackUpFrames, attackSideFrames))
+            return;
+
+        attackAnimationDirection = DirectionUtility.ToCardinal(
+            attackDirection.sqrMagnitude > Mathf.Epsilon ? attackDirection : FacingDirection);
+
+        UpdateHorizontalVisualSign(attackDirection);
+        attackAnimationElapsedTime = 0f;
+        isPlayingAttackAnimation = true;
+    }
+
+    private void UpdateSpriteAnimation(Vector2 velocity)
+    {
+        if (spriteRenderer == null)
+            return;
+
+        if (IsDead)
+        {
+            if (deadSprite != null)
+                spriteRenderer.sprite = deadSprite;
+
+            return;
+        }
+
+        Vector2 direction = velocity.sqrMagnitude > 0.001f
+            ? DirectionUtility.ToCardinal(velocity)
+            : FacingDirection;
+
+        if (direction.sqrMagnitude > Mathf.Epsilon)
+            currentAnimationDirection = direction;
+
+        UpdateHorizontalVisualSign(velocity);
+
+        if (TryApplyAttackAnimation())
+            return;
+
+        bool isMoving = velocity.sqrMagnitude > 0.001f;
+        Sprite[] frames = isMoving
+            ? GetMovementFrames(currentAnimationDirection)
+            : GetIdleFrames(currentAnimationDirection);
+
+        if (!HasFrames(frames))
+            return;
+
+        int signature = GetLoopAnimationSignature(isMoving, currentAnimationDirection);
+        if (signature != activeLoopAnimationSignature)
+        {
+            activeLoopAnimationSignature = signature;
+            loopAnimationElapsedTime = 0f;
+        }
+
+        ApplySpriteFrame(
+            frames,
+            currentAnimationDirection,
+            loopAnimationElapsedTime,
+            isMoving ? moveFramesPerSecond : idleFramesPerSecond,
+            loop: true);
+
+        loopAnimationElapsedTime += Time.deltaTime;
+    }
+
+    private bool TryApplyAttackAnimation()
+    {
+        if (!isPlayingAttackAnimation)
+            return false;
+
+        Sprite[] frames = GetAttackFrames(attackAnimationDirection);
+        if (!HasFrames(frames))
+        {
+            isPlayingAttackAnimation = false;
+            return false;
+        }
+
+        ApplySpriteFrame(frames, attackAnimationDirection, attackAnimationElapsedTime, attackFramesPerSecond, loop: false);
+        attackAnimationElapsedTime += Time.deltaTime;
+
+        if (attackAnimationElapsedTime >= GetAnimationDuration(frames, attackFramesPerSecond))
+        {
+            isPlayingAttackAnimation = false;
+            attackAnimationElapsedTime = 0f;
+            activeLoopAnimationSignature = int.MinValue;
+        }
+
+        return true;
+    }
+
+    private void ApplySpriteFrame(Sprite[] frames, Vector2 direction, float elapsedTime, float framesPerSecond, bool loop)
+    {
+        if (!HasFrames(frames))
+            return;
+
+        bool invertHorizontalFlip = direction.y > 0.5f && Mathf.Abs(direction.y) >= Mathf.Abs(direction.x);
+        ApplyHorizontalFlip(invertHorizontalFlip);
+
+        Sprite frame = GetAnimationFrame(frames, elapsedTime, framesPerSecond, loop);
+        if (frame != null)
+            spriteRenderer.sprite = frame;
+    }
+
+    private Sprite GetAnimationFrame(Sprite[] frames, float elapsedTime, float framesPerSecond, bool loop)
+    {
+        if (!HasFrames(frames))
+            return null;
+
+        int frameIndex = 0;
+        if (framesPerSecond > Mathf.Epsilon && frames.Length > 1)
+        {
+            int rawIndex = Mathf.FloorToInt(elapsedTime * framesPerSecond);
+            frameIndex = loop ? rawIndex % frames.Length : Mathf.Min(rawIndex, frames.Length - 1);
+        }
+
+        return frames[frameIndex] != null ? frames[frameIndex] : GetFirstFrame(frames);
+    }
+
+    private void ApplyHorizontalFlip(bool invertHorizontalFlip)
+    {
+        if (spriteRenderer == null)
+            return;
+
+        bool facingRight = horizontalVisualSign >= 0f;
+        if (invertHorizontalFlip)
+            facingRight = !facingRight;
+
+        spriteRenderer.flipX = facingRight != sideFramesFaceRight;
+    }
+
+    private void UpdateHorizontalVisualSign(Vector2 rawDirection)
+    {
+        if (Mathf.Abs(rawDirection.x) <= 0.001f)
+            return;
+
+        horizontalVisualSign = Mathf.Sign(rawDirection.x);
+    }
+
+    private Sprite[] GetIdleFrames(Vector2 direction)
+    {
+        return GetDirectionalFrames(direction, idleDownFrames, idleUpFrames, idleSideFrames);
+    }
+
+    private Sprite[] GetMovementFrames(Vector2 direction)
+    {
+        return GetDirectionalFrames(direction, moveDownFrames, moveUpFrames, moveSideFrames);
+    }
+
+    private Sprite[] GetAttackFrames(Vector2 direction)
+    {
+        return GetDirectionalFrames(direction, attackDownFrames, attackUpFrames, attackSideFrames);
+    }
+
+    private Sprite[] GetDirectionalFrames(Vector2 direction, Sprite[] downFrames, Sprite[] upFrames, Sprite[] sideFrames)
+    {
+        if (direction.y > 0.5f && HasFrames(upFrames))
+            return upFrames;
+
+        if (direction.y < -0.5f && HasFrames(downFrames))
+            return downFrames;
+
+        if (Mathf.Abs(direction.x) > 0.5f && HasFrames(sideFrames))
+            return sideFrames;
+
+        return GetFirstAvailableFrames(downFrames, upFrames, sideFrames);
+    }
+
+    private float GetAnimationDuration(Sprite[] frames, float framesPerSecond)
+    {
+        if (!HasFrames(frames) || framesPerSecond <= Mathf.Epsilon)
+            return float.PositiveInfinity;
+
+        return frames.Length / framesPerSecond;
+    }
+
+    private int GetLoopAnimationSignature(bool isMoving, Vector2 direction)
+    {
+        int directionSignature = Mathf.Abs(direction.x) > Mathf.Abs(direction.y)
+            ? 2
+            : direction.y > 0f ? 1 : 0;
+
+        return (isMoving ? 10 : 0) + directionSignature;
+    }
+
+    private bool HasDirectionalFrames(Sprite[] downFrames, Sprite[] upFrames, Sprite[] sideFrames)
+    {
+        return HasFrames(downFrames) || HasFrames(upFrames) || HasFrames(sideFrames);
+    }
+
+    private Sprite[] GetFirstAvailableFrames(params Sprite[][] frameSets)
+    {
+        for (int i = 0; i < frameSets.Length; i++)
+        {
+            if (HasFrames(frameSets[i]))
+                return frameSets[i];
+        }
+
+        return null;
+    }
+
+    private static bool HasFrames(Sprite[] frames)
+    {
+        if (frames == null || frames.Length == 0)
+            return false;
+
+        for (int i = 0; i < frames.Length; i++)
+        {
+            if (frames[i] != null)
+                return true;
+        }
+
+        return false;
+    }
+
+    private static Sprite GetFirstFrame(Sprite[] frames)
+    {
+        if (frames == null)
+            return null;
+
+        for (int i = 0; i < frames.Length; i++)
+        {
+            if (frames[i] != null)
+                return frames[i];
+        }
+
+        return null;
     }
 
     private static bool TryGetInterface<T>(Component source, out T value)
