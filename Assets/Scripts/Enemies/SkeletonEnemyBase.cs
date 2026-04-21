@@ -122,6 +122,7 @@ public abstract class SkeletonEnemyBase : MonoBehaviour, IKnockbackable
 
     public event Action<SkeletonEnemyBase> Died;
     public event Action<SkeletonEnemyBase, DeathCause> DiedWithCause;
+    public event Action<SkeletonEnemyBase> Despawned;
 
     public static event Action<SkeletonEnemyBase, DeathCause> AnyEnemyDied;
 
@@ -336,7 +337,9 @@ public abstract class SkeletonEnemyBase : MonoBehaviour, IKnockbackable
         AnyEnemyDied?.Invoke(this, cause);
 
         if (destroyAfterDeath)
-            Destroy(gameObject, deathCleanupDelay);
+            StartCoroutine(DestroyAfterDeathDelay());
+        else
+            Despawned?.Invoke(this);
     }
 
     public void SetContainmentArea(Collider2D area)
@@ -421,7 +424,17 @@ public abstract class SkeletonEnemyBase : MonoBehaviour, IKnockbackable
         TryHandleMarigoldContact(other);
     }
 
+    protected virtual void OnTriggerStay2D(Collider2D other)
+    {
+        TryHandleMarigoldContact(other);
+    }
+
     protected virtual void OnCollisionEnter2D(Collision2D collision)
+    {
+        TryHandleMarigoldContact(collision.collider);
+    }
+
+    protected virtual void OnCollisionStay2D(Collision2D collision)
     {
         TryHandleMarigoldContact(collision.collider);
     }
@@ -433,6 +446,15 @@ public abstract class SkeletonEnemyBase : MonoBehaviour, IKnockbackable
 
         Gizmos.color = new Color(1f, 0.85f, 0.2f, 0.45f);
         Gizmos.DrawWireSphere(transform.position, attackRange);
+    }
+
+    private System.Collections.IEnumerator DestroyAfterDeathDelay()
+    {
+        if (deathCleanupDelay > 0f)
+            yield return new WaitForSeconds(deathCleanupDelay);
+
+        Despawned?.Invoke(this);
+        Destroy(gameObject);
     }
 
     private void CacheReferences()
@@ -495,20 +517,46 @@ public abstract class SkeletonEnemyBase : MonoBehaviour, IKnockbackable
         if (IsDead || other == null)
             return;
 
-        MarigoldHazard marigoldHazard = other.GetComponentInParent<MarigoldHazard>();
+        MarigoldHazard marigoldHazard = other.GetComponent<MarigoldHazard>();
+        if (marigoldHazard == null)
+            marigoldHazard = other.GetComponentInParent<MarigoldHazard>();
+
         if (marigoldHazard != null && marigoldHazard.IsActive)
         {
             Kill(DeathCause.Marigold);
             return;
         }
 
-        LightableTorch torch = other.GetComponentInParent<LightableTorch>();
+        if (IsNamedMarigoldTrigger(other.transform))
+        {
+            Kill(DeathCause.Marigold);
+            return;
+        }
+
+        LightableTorch torch = other.GetComponent<LightableTorch>();
+        if (torch == null)
+            torch = other.GetComponentInParent<LightableTorch>();
+
         if (torch != null &&
             torch.Type == LightableTorch.TorchType.Marigold &&
             torch.IsLit)
         {
             Kill(DeathCause.Marigold);
         }
+    }
+
+    private static bool IsNamedMarigoldTrigger(Transform source)
+    {
+        if (source == null)
+            return false;
+
+        const StringComparison NameComparison = StringComparison.OrdinalIgnoreCase;
+
+        if (string.Equals(source.name, "Marigoldtrigger", NameComparison))
+            return true;
+
+        Transform parent = source.parent;
+        return parent != null && string.Equals(parent.name, "MarigoldTriggers", NameComparison);
     }
 
     private float GetMoveSpeed()

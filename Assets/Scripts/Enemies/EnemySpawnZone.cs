@@ -54,8 +54,8 @@ public class EnemySpawnZone : MonoBehaviour
             if (activeEnemies[i] == null)
                 continue;
 
-            activeEnemies[i].Died -= HandleEnemyDeath;
-            activeEnemies[i].Died += HandleEnemyDeath;
+            activeEnemies[i].Despawned -= HandleEnemyDeath;
+            activeEnemies[i].Despawned += HandleEnemyDeath;
         }
 
         if (hasStarted && spawnOnStart)
@@ -84,7 +84,7 @@ public class EnemySpawnZone : MonoBehaviour
         for (int i = 0; i < activeEnemies.Count; i++)
         {
             if (activeEnemies[i] != null)
-                activeEnemies[i].Died -= HandleEnemyDeath;
+                activeEnemies[i].Despawned -= HandleEnemyDeath;
         }
     }
 
@@ -128,7 +128,7 @@ public class EnemySpawnZone : MonoBehaviour
                 if (enemy == null)
                     continue;
 
-                enemy.Died -= HandleEnemyDeath;
+                enemy.Despawned -= HandleEnemyDeath;
                 Destroy(enemy.gameObject);
             }
 
@@ -149,7 +149,7 @@ public class EnemySpawnZone : MonoBehaviour
 
         Vector2 spawnPosition = GetSpawnPosition();
         SkeletonEnemyBase enemyInstance = Instantiate(prefab, spawnPosition, Quaternion.identity, spawnedEnemyParent);
-        enemyInstance.Died += HandleEnemyDeath;
+        enemyInstance.Despawned += HandleEnemyDeath;
 
         if (keepSpawnedEnemiesContained)
         {
@@ -167,7 +167,7 @@ public class EnemySpawnZone : MonoBehaviour
     private void HandleEnemyDeath(SkeletonEnemyBase enemy)
     {
         if (enemy != null)
-            enemy.Died -= HandleEnemyDeath;
+            enemy.Despawned -= HandleEnemyDeath;
 
         activeEnemies.Remove(enemy);
 
