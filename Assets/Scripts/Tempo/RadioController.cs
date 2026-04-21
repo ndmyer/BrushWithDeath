@@ -144,6 +144,7 @@ public class RadioController : MonoBehaviour, IInteractable
             _ => RadioState.Off
         };
 
+        GameSfx.Play(this, GameSfxCue.RadioSwitch, pitchVariance: 0.02f);
         ApplyStateVisuals(true);
         refreshTimer = 0f;
 

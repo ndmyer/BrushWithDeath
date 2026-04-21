@@ -17,6 +17,8 @@ public class SignDialogueInteractable : MonoBehaviour, IInteractable
         if (lines.Length == 0)
             return;
 
+        GameSfx.Play(this, GameSfxCue.SignInteract, pitchVariance: 0.02f);
+
         DialogueBoxUI dialogueBox = DialogueBoxUI.Instance;
         if (dialogueBox == null)
         {

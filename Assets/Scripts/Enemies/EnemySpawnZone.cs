@@ -150,6 +150,7 @@ public class EnemySpawnZone : MonoBehaviour
         Vector2 spawnPosition = GetSpawnPosition();
         SkeletonEnemyBase enemyInstance = Instantiate(prefab, spawnPosition, Quaternion.identity, spawnedEnemyParent);
         enemyInstance.Despawned += HandleEnemyDeath;
+        GameSfx.Play(enemyInstance, GameSfxCue.EnemySpawn, pitchVariance: 0.03f);
 
         if (keepSpawnedEnemiesContained)
         {

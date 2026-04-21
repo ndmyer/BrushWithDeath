@@ -36,6 +36,7 @@ public class InteractSwitch : MonoBehaviour, IInteractable
     {
         bool resultingState = ApplyStateChange();
 
+        GameSfx.Play(this, GameSfxCue.SwitchToggle, pitchVariance: 0.02f);
         EmitResult(resultingState);
         Activated?.Invoke(this, resultingState);
     }

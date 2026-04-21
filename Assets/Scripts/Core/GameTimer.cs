@@ -108,6 +108,7 @@ public class GameTimer : MonoBehaviour
         IsRunning = false;
         IsExpired = true;
         NotifyTimeChanged();
+        GameSfx.PlayDetached(GameSfxCue.TimeUp, transform.position);
         TimerExpired?.Invoke();
 
         if (gameFlowController == null)

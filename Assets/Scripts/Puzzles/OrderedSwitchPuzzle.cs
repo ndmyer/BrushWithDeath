@@ -62,7 +62,8 @@ public class OrderedSwitchPuzzle : MonoBehaviour
 
         if (!resultingState || activatedIndex != nextExpectedIndex)
         {
-            ResetPuzzle(true);
+            GameSfx.Play(this, GameSfxCue.BadSwitch, pitchVariance: 0.02f);
+            ResetPuzzle(true, playFailureSound: false);
             return;
         }
 
@@ -77,10 +78,16 @@ public class OrderedSwitchPuzzle : MonoBehaviour
         isSolved = true;
         nextExpectedIndex = switchOrder != null ? switchOrder.Length : 0;
         SetCompletionState(true);
+        GameSfx.Play(this, GameSfxCue.PuzzleSolved);
         onSolved?.Invoke();
     }
 
     private void ResetPuzzle(bool invokeResetEvent)
+    {
+        ResetPuzzle(invokeResetEvent, playFailureSound: true);
+    }
+
+    private void ResetPuzzle(bool invokeResetEvent, bool playFailureSound)
     {
         isSolved = false;
         nextExpectedIndex = 0;
@@ -88,7 +95,12 @@ public class OrderedSwitchPuzzle : MonoBehaviour
         ResetAssignedSwitches();
 
         if (invokeResetEvent)
+        {
+            if (playFailureSound)
+                GameSfx.Play(this, GameSfxCue.PuzzleFailed);
+
             onReset?.Invoke();
+        }
     }
 
     private void SetCompletionState(bool isComplete)

@@ -27,6 +27,7 @@ public class RangedSkeletonEnemy : SkeletonEnemyBase
         SkeletonProjectile projectile = Instantiate(projectilePrefab, spawnPosition, Quaternion.identity);
         Vector2 halfwayPoint = Target != null ? (Vector2)Target.position : (Vector2)spawnPosition + attackDirection * projectileSpawnOffset;
         projectile.InitializeBoomerang(gameObject, attackDirection, projectileSpeed, EffectiveDamage, halfwayPoint);
+        GameSfx.Play(this, GameSfxCue.RangedAttack, pitchVariance: 0.03f, volumeVariance: 0.04f);
         return true;
     }
 }

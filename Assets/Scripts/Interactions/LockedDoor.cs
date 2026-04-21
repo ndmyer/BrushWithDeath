@@ -45,11 +45,18 @@ public class LockedDoor : MonoBehaviour
 
     public void Open()
     {
+        if (IsOpen)
+            return;
+
         SetOpenState(true);
+        GameSfx.Play(this, GameSfxCue.LockedDoorOpened);
     }
 
     public void Close()
     {
+        if (!IsOpen)
+            return;
+
         SetOpenState(false);
     }
 

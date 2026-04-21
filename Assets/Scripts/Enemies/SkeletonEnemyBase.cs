@@ -270,6 +270,7 @@ public abstract class SkeletonEnemyBase : MonoBehaviour, IKnockbackable
         desiredVelocity = Vector2.zero;
         knockbackVelocity = knockbackDirection * (totalDistance / duration);
         knockbackTimer = duration;
+        GameSfx.Play(this, GetDamageSfxCue(), pitchVariance: 0.03f, volumeVariance: 0.04f);
     }
 
     public void ApplyKnockbackFrom(Vector2 sourcePosition, float strengthMultiplier = 1f)
@@ -330,6 +331,9 @@ public abstract class SkeletonEnemyBase : MonoBehaviour, IKnockbackable
         activeLoopAnimationSignature = int.MinValue;
         ResetAttackVisualRotation();
         UpdateSpriteAnimation(Vector2.zero);
+
+        if (cause == DeathCause.Marigold)
+            GameSfx.Play(this, GetMarigoldDeathSfxCue(), pitchVariance: 0.03f);
 
         onDeath?.Invoke();
         Died?.Invoke(this);
@@ -510,6 +514,16 @@ public abstract class SkeletonEnemyBase : MonoBehaviour, IKnockbackable
         }
 
         return false;
+    }
+
+    private GameSfxCue GetDamageSfxCue()
+    {
+        return this is RangedSkeletonEnemy ? GameSfxCue.RangedDamaged : GameSfxCue.MeleeDamaged;
+    }
+
+    private GameSfxCue GetMarigoldDeathSfxCue()
+    {
+        return this is RangedSkeletonEnemy ? GameSfxCue.RangedPurified : GameSfxCue.MeleePurified;
     }
 
     private void TryHandleMarigoldContact(Collider2D other)

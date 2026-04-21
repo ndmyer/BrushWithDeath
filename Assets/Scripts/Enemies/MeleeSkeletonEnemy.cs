@@ -68,6 +68,7 @@ public class MeleeSkeletonEnemy : SkeletonEnemyBase
         hasAppliedLungeDamage = false;
 
         SetFacingDirection(lungeDirection);
+        GameSfx.Play(this, GameSfxCue.MeleeAttack, pitchVariance: 0.03f, volumeVariance: 0.04f);
         TriggerAttack(lungeDirection);
     }
 

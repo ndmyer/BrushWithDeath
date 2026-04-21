@@ -41,6 +41,7 @@ public class KeyPickup : MonoBehaviour
 
         hasBeenCollected = true;
         progression.CollectKey();
+        GameSfx.PlayDetached(GameSfxCue.CollectKey, transform.position);
         onCollected?.Invoke();
         Destroy(gameObject);
     }

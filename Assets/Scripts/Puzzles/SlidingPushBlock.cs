@@ -117,15 +117,16 @@ public class SlidingPushBlock : MonoBehaviour, IKnockbackable
 
     private void OnCollisionEnter2D(Collision2D collision)
     {
-        if (!enabled || IsLockedInSocket || collision == null)
+        if (!enabled || IsLockedInSocket || collision == null || !IsSliding)
             return;
 
+        GameSfx.Play(this, GameSfxCue.BlockImpact, pitchVariance: 0.02f);
         StopSliding();
     }
 
     private void OnCollisionStay2D(Collision2D collision)
     {
-        if (!enabled || IsLockedInSocket || collision == null)
+        if (!enabled || IsLockedInSocket || collision == null || !IsSliding)
             return;
 
         StopSliding();
@@ -146,6 +147,7 @@ public class SlidingPushBlock : MonoBehaviour, IKnockbackable
         slideSpeed = speed;
         resetTimer = 0f;
         resetCheckActive = true;
+        GameSfx.Play(this, GameSfxCue.BlockMoving, pitchVariance: 0.02f);
     }
 
     public void ApplyKnockbackFrom(Vector2 sourcePosition, float strengthMultiplier = 1f)
@@ -165,6 +167,7 @@ public class SlidingPushBlock : MonoBehaviour, IKnockbackable
         resetTimer = 0f;
         StopSliding();
         SetWorldPosition(snappedPosition);
+        GameSfx.Play(this, GameSfxCue.BlockImpact, pitchVariance: 0.02f);
     }
 
     public void UnlockFromSocket(PushBlockSocket socket)
@@ -193,6 +196,7 @@ public class SlidingPushBlock : MonoBehaviour, IKnockbackable
 
         SetWorldPosition(spawnPosition);
         SetWorldRotation(spawnRotation);
+        GameSfx.Play(this, GameSfxCue.BlockImpact, pitchVariance: 0.02f);
     }
 
     public void RefreshSpawnPoint()

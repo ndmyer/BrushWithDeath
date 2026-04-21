@@ -64,6 +64,7 @@ public class BreakableSweetbreadBox : MonoBehaviour, IKnockbackable
         Vector3 spawnPosition = dropSpawnPoint != null ? dropSpawnPoint.position : transform.position;
         SpawnSweetbread(spawnPosition);
         PlayBreakParticles(spawnPosition);
+        GameSfx.PlayDetached(GameSfxCue.CrateBreak, spawnPosition, pitchVariance: 0.04f, volumeVariance: 0.05f);
 
         if (hitCollider != null)
             hitCollider.enabled = false;
@@ -88,6 +89,7 @@ public class BreakableSweetbreadBox : MonoBehaviour, IKnockbackable
         effectObject.transform.position = spawnPosition;
 
         ParticleSystem particleSystem = effectObject.AddComponent<ParticleSystem>();
+        particleSystem.Stop(true, ParticleSystemStopBehavior.StopEmittingAndClear);
         ConfigureBreakParticles(particleSystem);
 
         ParticleSystemRenderer particleRenderer = effectObject.GetComponent<ParticleSystemRenderer>();
@@ -136,7 +138,9 @@ public class BreakableSweetbreadBox : MonoBehaviour, IKnockbackable
         var velocityOverLifetime = particleSystem.velocityOverLifetime;
         velocityOverLifetime.enabled = true;
         velocityOverLifetime.space = ParticleSystemSimulationSpace.World;
+        velocityOverLifetime.x = new ParticleSystem.MinMaxCurve(0f, 0f);
         velocityOverLifetime.y = new ParticleSystem.MinMaxCurve(0.3f, 0.8f);
+        velocityOverLifetime.z = new ParticleSystem.MinMaxCurve(0f, 0f);
 
         var colorOverLifetime = particleSystem.colorOverLifetime;
         colorOverLifetime.enabled = true;

@@ -137,6 +137,9 @@ public class LightableTorch : MonoBehaviour, ILightable
         if (eventEmitter != null)
             eventEmitter.EmitSetState(isLit);
 
+        if (isLit && !previousState)
+            GameSfx.Play(this, GameSfxCue.TorchLit, pitchVariance: 0.02f);
+
         if (!emitEvents || previousState == isLit)
             return;
 

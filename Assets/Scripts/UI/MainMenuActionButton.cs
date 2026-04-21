@@ -46,6 +46,8 @@ public class MainMenuActionButton : MonoBehaviour, IPointerClickHandler, ISubmit
             return;
         }
 
+        GameSfx.PlayDetached(GameSfxCue.MenuConfirm, transform.position);
+
         switch (action)
         {
             case MainMenuButtonAction.Play:

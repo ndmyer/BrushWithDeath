@@ -28,8 +28,11 @@ public class SweetbreadsPickup : MonoBehaviour
         if (playerHealth.IsDead)
             return;
 
+        if (!playerHealth.Heal(healAmount))
+            return;
+
         hasBeenConsumed = true;
-        playerHealth.Heal(healAmount);
+        GameSfx.PlayDetached(GameSfxCue.BreadHeal, transform.position, pitchVariance: 0.03f);
         onCollected?.Invoke();
         Destroy(gameObject);
     }

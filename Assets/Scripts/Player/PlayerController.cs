@@ -296,6 +296,7 @@ public class PlayerController : MonoBehaviour
         if (animator != null && hasLanternSwingTrigger)
             animator.SetTrigger(LanternSwingTriggerName);
 
+        GameSfx.Play(this, GameSfxCue.LanternSwing, pitchVariance: 0.03f);
         lanternSwingVfx?.Play(motor.FacingDirection);
 
         interactor.TryLanternSwing(motor.FacingDirection, this);

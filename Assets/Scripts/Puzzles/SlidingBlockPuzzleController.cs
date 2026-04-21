@@ -88,6 +88,7 @@ public class SlidingBlockPuzzleController : MonoBehaviour
 
         isSolved = true;
         SetCompletionState(true);
+        GameSfx.Play(this, GameSfxCue.PuzzleSolved);
         onSolved?.Invoke();
     }
 

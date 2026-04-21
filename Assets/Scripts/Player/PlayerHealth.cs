@@ -93,6 +93,7 @@ public class PlayerHealth : MonoBehaviour
             return;
 
         IsDead = true;
+        GameSfx.Play(this, GameSfxCue.PlayerDeath);
 
         if (body != null)
             body.linearVelocity = Vector2.zero;

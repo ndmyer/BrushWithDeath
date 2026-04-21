@@ -186,6 +186,7 @@ public class PistaController : MonoBehaviour
         CurrentLanternTarget = lanternTarget;
         activatedSwitchesThisTravel.Clear();
         currentTravelDestination = TravelDestination.Lantern;
+        GameSfx.Play(this, GameSfxCue.PistaSend, pitchVariance: 0.02f);
         SetState(PistaState.Traveling);
     }
 
@@ -204,6 +205,7 @@ public class PistaController : MonoBehaviour
         }
 
         currentTravelDestination = TravelDestination.Player;
+        GameSfx.Play(this, GameSfxCue.PistaReturn, pitchVariance: 0.02f);
         SetState(PistaState.Traveling);
     }
 
@@ -350,11 +352,13 @@ public class PistaController : MonoBehaviour
         if (currentTravelDestination == TravelDestination.Lantern)
         {
             currentTravelDestination = TravelDestination.None;
+            GameSfx.Play(this, GameSfxCue.PistaYap, pitchVariance: 0.05f, volumeVariance: 0.05f);
             SetState(PistaState.LatchedToLantern);
             return;
         }
 
         currentTravelDestination = TravelDestination.None;
+        GameSfx.Play(this, GameSfxCue.PistaYap, pitchVariance: 0.05f, volumeVariance: 0.05f);
         SetState(PistaState.FollowingPlayer);
     }
 

@@ -59,7 +59,7 @@ public class DialogueBoxUI : MonoBehaviour
 
     public void ShowSign(DialogueLine[] lines, Sprite portraitOverride = null, bool useTypewriter = false)
     {
-        Show(lines, portraitOverride != null ? portraitOverride : GetDefaultSignPortrait(), useTypewriter);
+        Show(lines, portraitOverride != null ? portraitOverride : GetDefaultSignPortrait(), useTypewriter, playPistaVoice: false);
     }
 
     public void ShowSign(string message, Sprite portraitOverride = null, float duration = -1f, bool useTypewriter = false)
@@ -69,7 +69,7 @@ public class DialogueBoxUI : MonoBehaviour
 
     public void ShowPista(DialogueLine[] lines, Sprite portraitOverride = null, bool useTypewriter = true)
     {
-        Show(lines, portraitOverride != null ? portraitOverride : GetDefaultPistaPortrait(), useTypewriter);
+        Show(lines, portraitOverride != null ? portraitOverride : GetDefaultPistaPortrait(), useTypewriter, playPistaVoice: true);
     }
 
     public void ShowPista(string message, Sprite portraitOverride = null, float duration = -1f, bool useTypewriter = true)
@@ -112,7 +112,7 @@ public class DialogueBoxUI : MonoBehaviour
         SetVisible(false);
     }
 
-    private void Show(DialogueLine[] lines, Sprite portrait, bool useTypewriter)
+    private void Show(DialogueLine[] lines, Sprite portrait, bool useTypewriter, bool playPistaVoice)
     {
         CacheReferences();
 
@@ -140,15 +140,18 @@ public class DialogueBoxUI : MonoBehaviour
         if (displayRoutine != null)
             StopCoroutine(displayRoutine);
 
-        displayRoutine = StartCoroutine(DisplayRoutine(lines, useTypewriter));
+        displayRoutine = StartCoroutine(DisplayRoutine(lines, useTypewriter, playPistaVoice));
     }
 
-    private IEnumerator DisplayRoutine(DialogueLine[] lines, bool useTypewriter)
+    private IEnumerator DisplayRoutine(DialogueLine[] lines, bool useTypewriter, bool playPistaVoice)
     {
         foreach (DialogueLine line in lines)
         {
             if (!line.HasText())
                 continue;
+
+            if (playPistaVoice)
+                GameSfx.Play(this, GameSfxCue.PistaDialogue, pitchVariance: 0.04f, volumeVariance: 0.06f);
 
             dialogueText.text = line.text;
             dialogueText.maxVisibleCharacters = int.MaxValue;
