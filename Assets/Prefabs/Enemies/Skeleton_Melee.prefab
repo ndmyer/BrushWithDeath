@@ -208,10 +208,10 @@ MonoBehaviour:
   separationStrength: 3
   slowTempo:
     moveSpeedMultiplier: 0.5
-    knockbackMultiplier: 0.5
+    knockbackMultiplier: 0.75
     damageMultiplier: 2
     attackSpeedMultiplier: 0.5
-    attackRangeMultiplier: 1.5
+    attackRangeMultiplier: 1.25
   midTempo:
     moveSpeedMultiplier: 1
     knockbackMultiplier: 1
@@ -219,17 +219,17 @@ MonoBehaviour:
     attackSpeedMultiplier: 1
     attackRangeMultiplier: 1
   fastTempo:
+    moveSpeedMultiplier: 1.25
+    knockbackMultiplier: 1.25
+    damageMultiplier: 1
+    attackSpeedMultiplier: 1.5
+    attackRangeMultiplier: 0.75
+  intenseTempo:
     moveSpeedMultiplier: 1.5
     knockbackMultiplier: 1.5
     damageMultiplier: 1
     attackSpeedMultiplier: 1.5
     attackRangeMultiplier: 0.75
-  intenseTempo:
-    moveSpeedMultiplier: 2
-    knockbackMultiplier: 2
-    damageMultiplier: 1
-    attackSpeedMultiplier: 2
-    attackRangeMultiplier: 0.5
   attackTriggerName: Attack
   deathTriggerName: Die
   deadBoolName: IsDead
