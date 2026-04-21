@@ -1,9 +1,12 @@
 using UnityEngine;
+using UnityEngine.Events;
 
 [DisallowMultipleComponent]
 [RequireComponent(typeof(Collider2D))]
 public class KeyPickup : MonoBehaviour
 {
+    [SerializeField] private UnityEvent onCollected;
+
     private bool hasBeenCollected;
 
     private void Reset()
@@ -21,8 +24,12 @@ public class KeyPickup : MonoBehaviour
         if (hasBeenCollected || !TryGetPlayerProgression(other, out PlayerProgression progression))
             return;
 
+        if (progression.HasKey)
+            return;
+
         hasBeenCollected = true;
         progression.CollectKey();
+        onCollected?.Invoke();
         Destroy(gameObject);
     }
 
