@@ -17,6 +17,10 @@ public class GameSfxLibrary : ScriptableObject
     [SerializeField] private AudioClip playerDeathClip;
     [SerializeField] private AudioClip sweetbreadHealClip;
     [SerializeField] private AudioClip lanternSwingClip;
+    [SerializeField] private AudioClip guitarSlowLoopClip;
+    [SerializeField] private AudioClip guitarMidLoopClip;
+    [SerializeField] private AudioClip guitarFastLoopClip;
+    [SerializeField] private AudioClip guitarIntenseLoopClip;
     [SerializeField] private AudioClip pistaSentOutClip;
     [SerializeField] private AudioClip pistaReturnClip;
 
@@ -75,6 +79,10 @@ public class GameSfxLibrary : ScriptableObject
     public AudioClip PlayerDeathClip => playerDeathClip;
     public AudioClip SweetbreadHealClip => sweetbreadHealClip;
     public AudioClip LanternSwingClip => lanternSwingClip;
+    public AudioClip GuitarSlowLoopClip => guitarSlowLoopClip;
+    public AudioClip GuitarMidLoopClip => guitarMidLoopClip;
+    public AudioClip GuitarFastLoopClip => guitarFastLoopClip;
+    public AudioClip GuitarIntenseLoopClip => guitarIntenseLoopClip;
     public AudioClip PistaSentOutClip => pistaSentOutClip;
     public AudioClip PistaReturnClip => pistaReturnClip;
     public AudioClip[] PistaDialogueClips => pistaDialogueClips;
@@ -109,6 +117,10 @@ public class GameSfxLibrary : ScriptableObject
             GameSfxCue.PlayerDeath => playerDeathClip,
             GameSfxCue.BreadHeal => sweetbreadHealClip,
             GameSfxCue.LanternSwing => lanternSwingClip,
+            GameSfxCue.GuitarSlowLoop => guitarSlowLoopClip,
+            GameSfxCue.GuitarMidLoop => guitarMidLoopClip,
+            GameSfxCue.GuitarFastLoop => guitarFastLoopClip,
+            GameSfxCue.GuitarIntenseLoop => guitarIntenseLoopClip,
             GameSfxCue.PistaSend => pistaSentOutClip,
             GameSfxCue.PistaReturn => pistaReturnClip,
             GameSfxCue.PistaDialogue => GetRandomFromBank(pistaDialogueClips),

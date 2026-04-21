@@ -186,7 +186,6 @@ public class PistaController : MonoBehaviour
         CurrentLanternTarget = lanternTarget;
         activatedSwitchesThisTravel.Clear();
         currentTravelDestination = TravelDestination.Lantern;
-        GameSfx.Play(this, GameSfxCue.PistaSend, pitchVariance: 0.02f);
         SetState(PistaState.Traveling);
     }
 

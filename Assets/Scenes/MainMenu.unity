@@ -239,7 +239,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::MainMenuController
   levelScenePath: Assets/Scenes/Levels/Level-1.unity
-  menuMusic: {fileID: 0}
+  menuMusic: {fileID: 8300000, guid: 0f8e845879af62b47b09ecbe47832f0f, type: 3}
+  playTransitionDelay: 2.5
   navigationThreshold: 0.5
 --- !u!81 &100006
 AudioListener:
@@ -356,7 +357,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: 307.2, y: 30.6}
+  m_AnchoredPosition: {x: 307.5, y: -73.66}
   m_SizeDelta: {x: 360, y: 90}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!222 &100202
@@ -418,7 +419,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: 145.87552, y: -50.406574}
+  m_AnchoredPosition: {x: 145.87552, y: -51.3}
   m_SizeDelta: {x: 491.7509, y: 150.8131}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!222 &100212
@@ -451,8 +452,8 @@ MonoBehaviour:
       m_Calls: []
   m_text: PLay
   m_isRightToLeft: 0
-  m_fontAsset: {fileID: 11400000, guid: 750a8639d63cc79419a322af41660bca, type: 2}
-  m_sharedMaterial: {fileID: -5831741011263473664, guid: 750a8639d63cc79419a322af41660bca, type: 2}
+  m_fontAsset: {fileID: 11400000, guid: 9e72713c080ef724abba9aed85593f26, type: 2}
+  m_sharedMaterial: {fileID: 1230997045245444245, guid: 9e72713c080ef724abba9aed85593f26, type: 2}
   m_fontSharedMaterials: []
   m_fontMaterial: {fileID: 0}
   m_fontMaterials: []
@@ -476,8 +477,8 @@ MonoBehaviour:
   m_faceColor:
     serializedVersion: 2
     rgba: 4294967295
-  m_fontSize: 120
-  m_fontSizeBase: 120
+  m_fontSize: 184
+  m_fontSizeBase: 184
   m_fontWeight: 400
   m_enableAutoSizing: 0
   m_fontSizeMin: 18
@@ -556,7 +557,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: 307.2, y: -181.8}
+  m_AnchoredPosition: {x: 320, y: -267.4}
   m_SizeDelta: {x: 360, y: 90}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!222 &100302
@@ -651,8 +652,8 @@ MonoBehaviour:
       m_Calls: []
   m_text: Quit
   m_isRightToLeft: 0
-  m_fontAsset: {fileID: 11400000, guid: 750a8639d63cc79419a322af41660bca, type: 2}
-  m_sharedMaterial: {fileID: -5831741011263473664, guid: 750a8639d63cc79419a322af41660bca, type: 2}
+  m_fontAsset: {fileID: 11400000, guid: 9e72713c080ef724abba9aed85593f26, type: 2}
+  m_sharedMaterial: {fileID: 1230997045245444245, guid: 9e72713c080ef724abba9aed85593f26, type: 2}
   m_fontSharedMaterials: []
   m_fontMaterial: {fileID: 0}
   m_fontMaterials: []
@@ -676,8 +677,8 @@ MonoBehaviour:
   m_faceColor:
     serializedVersion: 2
     rgba: 4294967295
-  m_fontSize: 120
-  m_fontSizeBase: 120
+  m_fontSize: 184
+  m_fontSizeBase: 184
   m_fontWeight: 400
   m_enableAutoSizing: 0
   m_fontSizeMin: 18
@@ -971,7 +972,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: 196, y: 286}
+  m_AnchoredPosition: {x: 196, y: 301.9}
   m_SizeDelta: {x: 1736.6975, y: 310.8669}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &1085369708
@@ -996,8 +997,8 @@ MonoBehaviour:
       m_Calls: []
   m_text: "A Brush \n       with Death"
   m_isRightToLeft: 0
-  m_fontAsset: {fileID: 11400000, guid: 750a8639d63cc79419a322af41660bca, type: 2}
-  m_sharedMaterial: {fileID: -5831741011263473664, guid: 750a8639d63cc79419a322af41660bca, type: 2}
+  m_fontAsset: {fileID: 11400000, guid: 9e72713c080ef724abba9aed85593f26, type: 2}
+  m_sharedMaterial: {fileID: 1230997045245444245, guid: 9e72713c080ef724abba9aed85593f26, type: 2}
   m_fontSharedMaterials: []
   m_fontMaterial: {fileID: 0}
   m_fontMaterials: []
@@ -1021,8 +1022,8 @@ MonoBehaviour:
   m_faceColor:
     serializedVersion: 2
     rgba: 4294967295
-  m_fontSize: 137.5
-  m_fontSizeBase: 137.5
+  m_fontSize: 210.8
+  m_fontSizeBase: 210.8
   m_fontWeight: 400
   m_enableAutoSizing: 0
   m_fontSizeMin: 18

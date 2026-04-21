@@ -96,6 +96,9 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::TempoReceiver
   requiredTempo: 1
+  listenToGlobalTempo: 1
+  tempoService: {fileID: 0}
+  proximityCollider: {fileID: 0}
   targetState: {fileID: 3331179812127191107}
   eventEmitter: {fileID: 0}
   invertMatchResult: 0
@@ -264,7 +267,7 @@ SpriteRenderer:
   m_FlipX: 0
   m_FlipY: 0
   m_DrawMode: 0
-  m_Size: {x: 3.7, y: 4.58}
+  m_Size: {x: 3.08, y: 5.12}
   m_AdaptiveModeThreshold: 0.5
   m_SpriteTileMode: 0
   m_WasSpriteAssigned: 1

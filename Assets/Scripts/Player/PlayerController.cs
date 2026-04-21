@@ -69,6 +69,7 @@ public class PlayerController : MonoBehaviour
         EnsureRequiredComponent<PlayerHealth>();
         EnsureRequiredComponent<PlayerProgression>();
         EnsureRequiredComponent<TempoGroundIndicator>();
+        EnsureRequiredComponent<TempoChannelSfxDirector>();
         GameTimer.EnsureInstance();
 
         inputReader = GetComponent<PlayerInputReader>();

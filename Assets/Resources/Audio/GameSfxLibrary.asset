@@ -21,6 +21,10 @@ MonoBehaviour:
   playerDeathClip: {fileID: 8300000, guid: 46f051ddaee3abc40a3a3a337e256b24, type: 3}
   sweetbreadHealClip: {fileID: 8300000, guid: 751cc06162427984186964e7493874a8, type: 3}
   lanternSwingClip: {fileID: 8300000, guid: 7ef2157b9b544c548a147790d0cf6af0, type: 3}
+  guitarSlowLoopClip: {fileID: 8300000, guid: 08229589b910db441965ae2ec79fb440, type: 3}
+  guitarMidLoopClip: {fileID: 8300000, guid: ea39100573445044d9b4e858c2f20419, type: 3}
+  guitarFastLoopClip: {fileID: 8300000, guid: 099a1ade3c859554799c4859d01a646f, type: 3}
+  guitarIntenseLoopClip: {fileID: 8300000, guid: c92be139b94f5e14a8abe391c094aba2, type: 3}
   pistaSentOutClip: {fileID: 8300000, guid: 5d8682b2895923341bfeeb2abc0f1852, type: 3}
   pistaReturnClip: {fileID: 8300000, guid: 8877f0e4b29d41e4395225721a0396a8, type: 3}
   pistaDialogueClips:

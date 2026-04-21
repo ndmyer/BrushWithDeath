@@ -11,6 +11,7 @@ public class MainMenuController : MonoBehaviour
 {
     [SerializeField] private string levelScenePath = "Assets/Scenes/Levels/Level-1.unity";
     [SerializeField] private AudioClip menuMusic;
+    [SerializeField, Min(0f)] private float playTransitionDelay = 0.5f;
 
     [Header("Controller Navigation")]
     [SerializeField, Min(0.1f)] private float navigationThreshold = 0.5f;
@@ -19,6 +20,7 @@ public class MainMenuController : MonoBehaviour
     private MainMenuActionButton[] actionButtons;
     private int selectedIndex;
     private bool navigationHeld;
+    private bool isStartingGame;
 
     private void Awake()
     {
@@ -34,13 +36,17 @@ public class MainMenuController : MonoBehaviour
 
     public void Play()
     {
+        if (isStartingGame)
+            return;
+
         if (string.IsNullOrWhiteSpace(levelScenePath))
         {
             Debug.LogWarning("MainMenuController is missing a level scene path.", this);
             return;
         }
 
-        SceneManager.LoadScene(levelScenePath);
+        isStartingGame = true;
+        Invoke(nameof(LoadLevelScene), playTransitionDelay);
     }
 
     public void Quit()
@@ -67,6 +73,11 @@ public class MainMenuController : MonoBehaviour
 
         if (!musicSource.isPlaying)
             musicSource.Play();
+    }
+
+    private void LoadLevelScene()
+    {
+        SceneManager.LoadScene(levelScenePath);
     }
 
     public void NotifyButtonSelected(MainMenuActionButton button)
@@ -98,6 +109,9 @@ public class MainMenuController : MonoBehaviour
 
     private void HandleControllerNavigation()
     {
+        if (isStartingGame)
+            return;
+
         if (actionButtons == null || actionButtons.Length == 0)
             return;
 

@@ -318,6 +318,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::TempoGroundIndicator
   tempoService: {fileID: 0}
+  indicatorMaterial: {fileID: 2100000, guid: 5e754736d4a7c1f46914bcd8e8bb8f32, type: 2}
   localOffset: {x: 0, y: 0, z: 0}
   worldSize: {x: 4, y: 4}
   baseSortingOrder: -2
@@ -359,7 +360,7 @@ MonoBehaviour:
   playerController: {fileID: 1617339809760383156}
   body: {fileID: 8298384755664297758}
   respawnPoint: {fileID: 0}
-  maxHealth: 3
+  maxHealth: 5
   blackHoldDuration: 1.5
   onDeath:
     m_PersistentCalls:

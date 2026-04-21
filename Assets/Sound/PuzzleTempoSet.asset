@@ -1,0 +1,24 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 37dca9f0f8b4e7c47be99e4d535bad67, type: 3}
+  m_Name: PuzzleTempoSet
+  m_EditorClassIdentifier: Assembly-CSharp::TempoMusicSet
+  mainLoop: {fileID: 8300000, guid: ff426da6921594145b6256b24d1c6531, type: 3}
+  mainVolume: 1
+  slowLayer: {fileID: 8300000, guid: 8410f61add68968459f04bbcbe1792a5, type: 3}
+  slowVolume: 1
+  midLayer: {fileID: 8300000, guid: eb8c4c6da4c32964da14ff974a6fa66a, type: 3}
+  midVolume: 1
+  fastLayer: {fileID: 8300000, guid: 5aac1a52a6c5775478fec1f990c313cb, type: 3}
+  fastVolume: 1
+  intenseLayer: {fileID: 8300000, guid: 03d81aee8bd2eaf4ab442c89e910c44b, type: 3}
+  intenseVolume: 1

@@ -12,6 +12,7 @@ public class LevelIntroSequence : MonoBehaviour
     [SerializeField] private Transform introEndPoint;
     [SerializeField] private EventDialogueTrigger dialogueIntro;
     [SerializeField] private GameObject enemySpawnZoneRoot;
+    [SerializeField] private GameTimer gameTimer;
 
     [Header("Movement")]
     [SerializeField, Min(0.01f)] private float walkSpeed = 2.5f;
@@ -34,6 +35,9 @@ public class LevelIntroSequence : MonoBehaviour
     {
         AutoAssignReferences();
         shouldRunIntro = CanRunIntro();
+
+        if (shouldRunIntro)
+            gameTimer?.PauseTimer();
 
         if (shouldRunIntro && enemySpawnZoneRoot != null && enemySpawnZoneRoot.activeSelf)
             enemySpawnZoneRoot.SetActive(false);
@@ -110,6 +114,8 @@ public class LevelIntroSequence : MonoBehaviour
 
         if (enemySpawnZoneRoot != null && !enemySpawnZoneRoot.activeSelf)
             enemySpawnZoneRoot.SetActive(true);
+
+        gameTimer?.StartTimer();
     }
 
     private bool CanRunIntro()
@@ -138,6 +144,9 @@ public class LevelIntroSequence : MonoBehaviour
             if (enemySpawnZone != null)
                 enemySpawnZoneRoot = enemySpawnZone.gameObject;
         }
+
+        if (gameTimer == null)
+            gameTimer = GameTimer.Instance != null ? GameTimer.Instance : FindAnyObjectByType<GameTimer>();
 
         if (introEndPoint == null)
         {

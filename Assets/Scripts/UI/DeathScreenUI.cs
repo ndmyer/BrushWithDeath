@@ -48,6 +48,12 @@ public class DeathScreenUI : MonoBehaviour
         yield return FadeToAlpha(1f, fadeOutDuration);
     }
 
+    public IEnumerator FadeToBlack(float duration)
+    {
+        CacheReferences();
+        yield return FadeToAlpha(1f, duration);
+    }
+
     public IEnumerator FadeFromBlack()
     {
         CacheReferences();

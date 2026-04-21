@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.Audio;
 using UnityEngine.Events;
 
 public class RadioController : MonoBehaviour, IInteractable
@@ -36,6 +37,15 @@ public class RadioController : MonoBehaviour, IInteractable
     [SerializeField] private Sprite[] intenseAnimationFrames;
     [SerializeField, Min(0f)] private float intenseAnimationFramesPerSecond = 10f;
     [SerializeField] private ParticleSystem onParticleSystem;
+
+    [Header("Radio Audio")]
+    [SerializeField] private AudioSource spiritualRadioSource;
+    [SerializeField] private AudioMixerGroup spiritualRadioMixerGroup;
+    [SerializeField] private AudioClip slowSpiritualRadioClip;
+    [SerializeField] private AudioClip fastSpiritualRadioClip;
+    [SerializeField] private AudioClip intenseSpiritualRadioClip;
+    [SerializeField, Range(0f, 1f)] private float spiritualRadioVolume = 1f;
+
     [SerializeField] private UnityEvent onTurnedOff;
     [SerializeField] private UnityEvent onTurnedOn;
     [SerializeField] private RadioStateEvent onStateChanged;
@@ -59,12 +69,16 @@ public class RadioController : MonoBehaviour, IInteractable
     private Sprite defaultActiveSprite;
     private RadioState lastAnimatedState = RadioState.Off;
     private float activeAnimationElapsedTime;
+    private Transform playerTransform;
+    private RadioState activeRadioTrackState = RadioState.Off;
 
     private void Awake()
     {
         AutoAssignAuraRenderer();
         AutoAssignVisualRenderers();
         AutoAssignParticleSystem();
+        AutoAssignSpiritualRadioSource();
+        CachePlayerTransform();
 
         if (auraTransform == null && auraRenderer != null)
             auraTransform = auraRenderer.transform;
@@ -74,6 +88,8 @@ public class RadioController : MonoBehaviour, IInteractable
 
         if (activeStateRenderer != null)
             defaultActiveSprite = activeStateRenderer.sprite;
+
+        ConfigureSpiritualRadioSource();
 
         CurrentState = startingState;
         ApplyStateVisuals(true);
@@ -84,6 +100,7 @@ public class RadioController : MonoBehaviour, IInteractable
         AutoAssignAuraRenderer();
         AutoAssignVisualRenderers();
         AutoAssignParticleSystem();
+        AutoAssignSpiritualRadioSource();
 
         if (auraTransform == null && auraRenderer != null)
             auraTransform = auraRenderer.transform;
@@ -94,11 +111,24 @@ public class RadioController : MonoBehaviour, IInteractable
         if (activeStateRenderer != null)
             defaultActiveSprite = activeStateRenderer.sprite;
 
+        ConfigureSpiritualRadioSource();
+
         if (!Application.isPlaying)
         {
             CurrentState = startingState;
             ApplyStateVisuals(false);
         }
+
+#if UNITY_EDITOR
+        if (slowSpiritualRadioClip == null)
+            slowSpiritualRadioClip = LoadEditorClip("4507c23a93eb62840a3939c27d7f9a16");
+
+        if (fastSpiritualRadioClip == null)
+            fastSpiritualRadioClip = LoadEditorClip("f0777058136f7794e900c58eb6078b26");
+
+        if (intenseSpiritualRadioClip == null)
+            intenseSpiritualRadioClip = LoadEditorClip("a6bf2ac68de69484fa88737af8d9dad9");
+#endif
     }
 
     private void OnEnable()
@@ -113,11 +143,14 @@ public class RadioController : MonoBehaviour, IInteractable
     private void OnDisable()
     {
         StopOnParticles();
+        StopSpiritualRadioTrack();
         ClearAffectedReceivers();
     }
 
     private void Update()
     {
+        UpdateSpiritualRadioAudio();
+
         if (!IsActive)
             return;
 
@@ -221,6 +254,7 @@ public class RadioController : MonoBehaviour, IInteractable
 
         ApplyRadioVisualState();
         ApplyParticleState();
+        UpdateSpiritualRadioAudio();
 
         if (!invokeEvents)
             return;
@@ -337,6 +371,14 @@ public class RadioController : MonoBehaviour, IInteractable
         onParticleSystem = GetComponentInChildren<ParticleSystem>(true);
     }
 
+    private void AutoAssignSpiritualRadioSource()
+    {
+        if (spiritualRadioSource != null)
+            return;
+
+        spiritualRadioSource = GetComponent<AudioSource>();
+    }
+
     private void ApplyRadioVisualState()
     {
         if (offStateRenderer != null)
@@ -410,6 +452,100 @@ public class RadioController : MonoBehaviour, IInteractable
             return;
 
         onParticleSystem.Stop(true, ParticleSystemStopBehavior.StopEmittingAndClear);
+    }
+
+    private void UpdateSpiritualRadioAudio()
+    {
+        if (!Application.isPlaying)
+            return;
+
+        CachePlayerTransform();
+
+        if (!IsActive || playerTransform == null)
+        {
+            StopSpiritualRadioTrack();
+            return;
+        }
+
+        float audibleRadius = Mathf.Max(0.01f, broadcastRadius);
+        Vector2 offset = playerTransform.position - transform.position;
+        if (offset.sqrMagnitude > audibleRadius * audibleRadius)
+        {
+            StopSpiritualRadioTrack();
+            return;
+        }
+
+        AudioClip desiredClip = GetSpiritualRadioClip(CurrentState);
+        if (desiredClip == null)
+        {
+            StopSpiritualRadioTrack();
+            return;
+        }
+
+        ConfigureSpiritualRadioSource();
+        if (spiritualRadioSource == null)
+            return;
+
+        if (activeRadioTrackState != CurrentState || spiritualRadioSource.clip != desiredClip)
+        {
+            spiritualRadioSource.Stop();
+            spiritualRadioSource.clip = desiredClip;
+            activeRadioTrackState = CurrentState;
+        }
+
+        spiritualRadioSource.volume = spiritualRadioVolume;
+
+        if (!spiritualRadioSource.isPlaying)
+            spiritualRadioSource.Play();
+    }
+
+    private void ConfigureSpiritualRadioSource()
+    {
+        if (spiritualRadioSource == null)
+            return;
+
+        spiritualRadioSource.playOnAwake = false;
+        spiritualRadioSource.loop = true;
+        spiritualRadioSource.spatialBlend = 1f;
+        spiritualRadioSource.rolloffMode = AudioRolloffMode.Linear;
+        spiritualRadioSource.minDistance = Mathf.Max(0.5f, broadcastRadius * 0.2f);
+        spiritualRadioSource.maxDistance = Mathf.Max(spiritualRadioSource.minDistance + 0.01f, broadcastRadius);
+        spiritualRadioSource.dopplerLevel = 0f;
+        spiritualRadioSource.outputAudioMixerGroup = spiritualRadioMixerGroup;
+    }
+
+    private void CachePlayerTransform()
+    {
+        if (playerTransform != null)
+            return;
+
+        PlayerController playerController = FindAnyObjectByType<PlayerController>();
+        if (playerController != null)
+            playerTransform = playerController.transform;
+    }
+
+    private AudioClip GetSpiritualRadioClip(RadioState state)
+    {
+        return state switch
+        {
+            RadioState.Slow => slowSpiritualRadioClip,
+            RadioState.Fast => fastSpiritualRadioClip,
+            RadioState.Intense => intenseSpiritualRadioClip,
+            _ => null
+        };
+    }
+
+    private void StopSpiritualRadioTrack()
+    {
+        activeRadioTrackState = RadioState.Off;
+
+        if (spiritualRadioSource == null)
+            return;
+
+        if (spiritualRadioSource.isPlaying)
+            spiritualRadioSource.Stop();
+
+        spiritualRadioSource.clip = null;
     }
 
     private void LateUpdate()
@@ -504,4 +640,14 @@ public class RadioController : MonoBehaviour, IInteractable
         Gizmos.color = previewState == RadioState.Off ? new Color(1f, 1f, 1f, 0.2f) : GetAuraColor(previewState);
         Gizmos.DrawWireSphere(transform.position, broadcastRadius);
     }
+
+#if UNITY_EDITOR
+    private static AudioClip LoadEditorClip(string guid)
+    {
+        string assetPath = UnityEditor.AssetDatabase.GUIDToAssetPath(guid);
+        return string.IsNullOrEmpty(assetPath)
+            ? null
+            : UnityEditor.AssetDatabase.LoadAssetAtPath<AudioClip>(assetPath);
+    }
+#endif
 }

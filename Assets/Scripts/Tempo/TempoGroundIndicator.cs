@@ -7,7 +7,6 @@ public class TempoGroundIndicator : MonoBehaviour
     private const string VisualRootName = "_TempoIndicator";
     private const string BaseRendererName = "CurrentTempo";
     private const string ChannelRendererName = "ChannelTarget";
-    private const string IndicatorShaderName = "BrushWithDeath/Tempo/EtherealIndicator";
     private const int GeneratedSpriteResolution = 64;
 
     private static readonly int TintPropertyId = Shader.PropertyToID("_Tint");
@@ -67,6 +66,7 @@ public class TempoGroundIndicator : MonoBehaviour
     [SerializeField] private Color midColor = new Color(0.93f, 0.77f, 0.34f, 1f);
     [SerializeField] private Color fastColor = new Color(0.96f, 0.49f, 0.25f, 1f);
     [SerializeField] private Color intenseColor = new Color(0.88f, 0.2f, 0.28f, 1f);
+    [SerializeField] private Material indicatorMaterial;
 
     private Transform visualRoot;
     private SpriteRenderer baseRenderer;
@@ -78,8 +78,7 @@ public class TempoGroundIndicator : MonoBehaviour
 
     private static Sprite sharedCircleSprite;
     private static Sprite sharedQuadSprite;
-    private static Material sharedIndicatorMaterial;
-    private static bool sharedIndicatorMaterialResolved;
+    private Material runtimeIndicatorMaterial;
 
     private void Awake()
     {
@@ -251,8 +250,8 @@ public class TempoGroundIndicator : MonoBehaviour
         float phaseOffset,
         float boundsScale)
     {
-        Material indicatorMaterial = GetSharedIndicatorMaterial();
-        if (indicatorMaterial == null || renderer.sharedMaterial != indicatorMaterial)
+        Material activeIndicatorMaterial = GetIndicatorMaterial();
+        if (activeIndicatorMaterial == null || renderer.sharedMaterial != activeIndicatorMaterial)
         {
             renderer.SetPropertyBlock(null);
             renderer.color = WithAlpha(color, opacity);
@@ -328,8 +327,8 @@ public class TempoGroundIndicator : MonoBehaviour
         if (playerSpriteRenderer != null)
             renderer.sortingLayerID = playerSpriteRenderer.sortingLayerID;
 
-        Material indicatorMaterial = GetSharedIndicatorMaterial();
-        if (indicatorMaterial == null)
+        Material activeIndicatorMaterial = GetIndicatorMaterial();
+        if (activeIndicatorMaterial == null)
         {
             renderer.sprite = GetSharedCircleSprite();
             renderer.sharedMaterial = null;
@@ -337,30 +336,24 @@ public class TempoGroundIndicator : MonoBehaviour
         }
 
         renderer.sprite = GetSharedQuadSprite();
-        renderer.sharedMaterial = indicatorMaterial;
+        renderer.sharedMaterial = activeIndicatorMaterial;
     }
 
-    private static Material GetSharedIndicatorMaterial()
+    private Material GetIndicatorMaterial()
     {
-        if (sharedIndicatorMaterial != null)
-            return sharedIndicatorMaterial;
-
-        if (sharedIndicatorMaterialResolved)
+        if (indicatorMaterial == null)
             return null;
 
-        sharedIndicatorMaterialResolved = true;
-
-        Shader indicatorShader = Shader.Find(IndicatorShaderName);
-        if (indicatorShader == null)
-            return null;
-
-        sharedIndicatorMaterial = new Material(indicatorShader)
+        if (runtimeIndicatorMaterial == null)
         {
-            name = "TempoIndicatorSharedMaterial",
-            hideFlags = HideFlags.HideAndDontSave
-        };
+            runtimeIndicatorMaterial = new Material(indicatorMaterial)
+            {
+                name = indicatorMaterial.name + " (Runtime)",
+                hideFlags = HideFlags.HideAndDontSave
+            };
+        }
 
-        return sharedIndicatorMaterial;
+        return runtimeIndicatorMaterial;
     }
 
     private static Sprite GetSharedQuadSprite()
