@@ -3,6 +3,9 @@ using UnityEngine.Events;
 
 public class LightableTorch : MonoBehaviour, ILightable
 {
+    private const int LitLoopStartFrameIndex = 4;
+    private const int LitLoopEndFrameIndex = 6;
+
     public enum TorchType
     {
         Standard,
@@ -150,8 +153,8 @@ public class LightableTorch : MonoBehaviour, ILightable
 
         stateVisuals?.Apply(isLit);
 
-        if (playLitAnimation)
-            BeginLitAnimationPlayback();
+        if (isLit)
+            BeginLitAnimationPlayback(playLitAnimation);
         else
             StopLitAnimationPlayback();
 
@@ -170,6 +173,8 @@ public class LightableTorch : MonoBehaviour, ILightable
 
         if (isPossessedByPista)
             StopLitAnimationPlayback();
+        else if (IsLit)
+            BeginLitAnimationPlayback(false);
 
         UpdateVisualRendererVisibility();
         ApplyAnimatedVisualImmediate();
@@ -203,10 +208,7 @@ public class LightableTorch : MonoBehaviour, ILightable
             return;
 
         if (!isPlayingLitAnimation)
-        {
-            SetAnimatedVisualToDefaultLitSprite();
-            return;
-        }
+            BeginLitAnimationPlayback(false);
 
         if (!HasSprites(litAnimationFrames))
         {
@@ -223,14 +225,7 @@ public class LightableTorch : MonoBehaviour, ILightable
         }
 
         animatedVisualElapsedTime += Time.deltaTime;
-        int litFrameIndex = Mathf.FloorToInt(animatedVisualElapsedTime * litAnimationFramesPerSecond);
-
-        if (litFrameIndex >= litAnimationFrames.Length)
-        {
-            StopLitAnimationPlayback();
-            SetAnimatedVisualToDefaultLitSprite();
-            return;
-        }
+        int litFrameIndex = GetLitFrameIndexForElapsedTime(animatedVisualElapsedTime);
 
         Sprite litFrame = litAnimationFrames[litFrameIndex];
         if (litFrame != null)
@@ -292,7 +287,7 @@ public class LightableTorch : MonoBehaviour, ILightable
 
         if (isPlayingLitAnimation)
         {
-            Sprite litFrame = GetFirstAvailableSprite(litAnimationFrames);
+            Sprite litFrame = GetCurrentLitAnimationSprite();
             if (litFrame != null)
                 animatedVisualRenderer.sprite = litFrame;
             else
@@ -315,9 +310,13 @@ public class LightableTorch : MonoBehaviour, ILightable
             possessedVisualRenderer.gameObject.SetActive(showPossessedVisuals);
     }
 
-    private void BeginLitAnimationPlayback()
+    private void BeginLitAnimationPlayback(bool playFromStart)
     {
-        animatedVisualElapsedTime = 0f;
+        float framesPerSecond = litAnimationFramesPerSecond;
+        int startFrameIndex = playFromStart ? 0 : GetLitLoopStartIndex();
+        animatedVisualElapsedTime = framesPerSecond > 0f
+            ? startFrameIndex / framesPerSecond
+            : 0f;
         isPlayingLitAnimation = true;
     }
 
@@ -391,6 +390,48 @@ public class LightableTorch : MonoBehaviour, ILightable
     {
         animatedVisualElapsedTime = 0f;
         isPlayingLitAnimation = false;
+    }
+
+    private int GetLitFrameIndexForElapsedTime(float elapsedTime)
+    {
+        if (litAnimationFrames == null || litAnimationFrames.Length == 0)
+            return -1;
+
+        int rawFrameIndex = Mathf.Max(0, Mathf.FloorToInt(elapsedTime * litAnimationFramesPerSecond));
+        int loopStartIndex = GetLitLoopStartIndex();
+        int loopEndIndex = GetLitLoopEndIndex(loopStartIndex);
+
+        if (rawFrameIndex <= loopEndIndex)
+            return rawFrameIndex;
+
+        int loopLength = loopEndIndex - loopStartIndex + 1;
+        if (loopLength <= 0)
+            return loopEndIndex;
+
+        return loopStartIndex + ((rawFrameIndex - loopStartIndex) % loopLength);
+    }
+
+    private int GetLitLoopStartIndex()
+    {
+        return litAnimationFrames == null || litAnimationFrames.Length == 0
+            ? 0
+            : Mathf.Clamp(LitLoopStartFrameIndex, 0, litAnimationFrames.Length - 1);
+    }
+
+    private int GetLitLoopEndIndex(int loopStartIndex)
+    {
+        return litAnimationFrames == null || litAnimationFrames.Length == 0
+            ? loopStartIndex
+            : Mathf.Clamp(LitLoopEndFrameIndex, loopStartIndex, litAnimationFrames.Length - 1);
+    }
+
+    private Sprite GetCurrentLitAnimationSprite()
+    {
+        int litFrameIndex = GetLitFrameIndexForElapsedTime(animatedVisualElapsedTime);
+        if (litFrameIndex < 0 || litAnimationFrames == null || litFrameIndex >= litAnimationFrames.Length)
+            return null;
+
+        return litAnimationFrames[litFrameIndex];
     }
 
     private void SetAnimatedVisualToDefaultLitSprite()

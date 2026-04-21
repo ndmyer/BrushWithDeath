@@ -92,5 +92,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::DialogueTriggerZone
   dialogueText: Pista has something to say.
-  portraitOverride: {fileID: -7632187312280595322, guid: 487de8756e40c9943aff1ad2738f19e4, type: 3}
+  dialogueLines: []
+  portraitOverride: {fileID: -770952507786131419, guid: 3ffeea94189e2ff4a87b4b1554f8e51b, type: 3}
+  useTypewriter: 1
   displayDuration: 3.5
