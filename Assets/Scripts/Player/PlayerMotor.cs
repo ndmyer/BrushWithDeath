@@ -9,11 +9,15 @@ public class PlayerMotor : MonoBehaviour
 
     private Rigidbody2D rb;
     private Vector2 movementInput;
+    private Vector2 forcedMovementInput;
     private Vector2 facingDirection = Vector2.down;
+    private float forcedMoveSpeed;
+    private bool hasForcedMovement;
 
-    public Vector2 MovementInput => movementInput;
+    public Vector2 MovementInput => hasForcedMovement ? forcedMovementInput : movementInput;
     public Vector2 FacingDirection => facingDirection;
-    public bool IsMoving => movementInput.sqrMagnitude > 0.01f;
+    public bool IsMoving => MovementInput.sqrMagnitude > 0.01f;
+    public bool HasForcedMovement => hasForcedMovement;
 
     private void Awake()
     {
@@ -43,15 +47,41 @@ public class PlayerMotor : MonoBehaviour
             facingDirection = DirectionUtility.ToCardinal(input);
     }
 
+    public void SetForcedMovement(Vector2 direction, float speed)
+    {
+        if (speed <= 0f || direction.sqrMagnitude <= 0.0001f)
+        {
+            ClearForcedMovement();
+            return;
+        }
+
+        forcedMovementInput = direction.normalized;
+        forcedMoveSpeed = speed;
+        hasForcedMovement = true;
+        facingDirection = DirectionUtility.ToCardinal(forcedMovementInput);
+    }
+
+    public void ClearForcedMovement()
+    {
+        hasForcedMovement = false;
+        forcedMovementInput = Vector2.zero;
+        forcedMoveSpeed = 0f;
+        rb.linearVelocity = Vector2.zero;
+    }
+
     public void StopMovement()
     {
         movementInput = Vector2.zero;
-        rb.linearVelocity = Vector2.zero;
+
+        if (!hasForcedMovement)
+            rb.linearVelocity = Vector2.zero;
     }
 
     private void FixedUpdate()
     {
-        rb.linearVelocity = movementInput * moveSpeed;
+        rb.linearVelocity = hasForcedMovement
+            ? forcedMovementInput * forcedMoveSpeed
+            : movementInput * moveSpeed;
     }
 
     private void ApplyPhysicsSettings()

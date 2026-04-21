@@ -26,6 +26,8 @@ public class DialogueBoxUI : MonoBehaviour
 
     private Coroutine displayRoutine;
 
+    public bool IsDisplaying => displayRoutine != null;
+
     public static DialogueBoxUI Instance
     {
         get

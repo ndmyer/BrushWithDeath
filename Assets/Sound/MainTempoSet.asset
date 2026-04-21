@@ -12,13 +12,13 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 37dca9f0f8b4e7c47be99e4d535bad67, type: 3}
   m_Name: MainTempoSet
   m_EditorClassIdentifier: Assembly-CSharp::TempoMusicSet
-  mainLoop: {fileID: 8300000, guid: 2b4f7689039373d4db4fa75765e01990, type: 3}
-  mainVolume: 0.28
+  mainLoop: {fileID: 8300000, guid: 11b3aabdea61dbb48bfa772ee288c6cd, type: 3}
+  mainVolume: 0.536
   slowLayer: {fileID: 8300000, guid: 59e3fab481482e64f839527e11f511f2, type: 3}
-  slowVolume: 0.54
+  slowVolume: 0.8
   midLayer: {fileID: 8300000, guid: cf42b57fdce16484cab0a3c37157e4e5, type: 3}
-  midVolume: 0.57
+  midVolume: 0.8
   fastLayer: {fileID: 8300000, guid: bc92113a817cc57428d5cce56537757e, type: 3}
-  fastVolume: 0.58
+  fastVolume: 0.8
   intenseLayer: {fileID: 8300000, guid: 6fbc46dcdea29e2489a9a87ab582e0c2, type: 3}
-  intenseVolume: 0.55
+  intenseVolume: 0.8

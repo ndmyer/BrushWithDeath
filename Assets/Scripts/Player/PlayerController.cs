@@ -111,6 +111,10 @@ public class PlayerController : MonoBehaviour
                 HandleNormalState();
                 break;
 
+            case PlayerState.Dialogue:
+                HandleDialogueState();
+                break;
+
             case PlayerState.PlayingTempo:
                 HandleTempoFocusState();
                 break;
@@ -127,6 +131,12 @@ public class PlayerController : MonoBehaviour
                 motor.StopMovement();
                 break;
         }
+    }
+
+    private void HandleDialogueState()
+    {
+        if (!motor.HasForcedMovement)
+            motor.StopMovement();
     }
 
     private void HandleNormalState()
@@ -225,6 +235,7 @@ public class PlayerController : MonoBehaviour
         else
             pistaController?.EndAiming();
 
+        motor.ClearForcedMovement();
         motor.StopMovement();
         SetState(PlayerState.Dead);
         UpdateDeathAnimatorState();
