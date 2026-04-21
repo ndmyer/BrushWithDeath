@@ -7,7 +7,7 @@ public class GameTimer : MonoBehaviour
     private static GameTimer instance;
 
     [Header("Timer")]
-    [SerializeField, Min(1f)] private float defaultDurationSeconds = 300f;
+    [SerializeField, Min(1f)] private float defaultDurationSeconds = 15f;
     [SerializeField] private bool startRunningOnAwake = true;
 
     [Header("References")]

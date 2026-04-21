@@ -390,6 +390,38 @@ PrefabInstance:
       propertyPath: m_LocalScale.y
       value: 1
       objectReference: {fileID: 0}
+    - target: {fileID: 6181120506807593953, guid: 259a687f298afcc4cbd0bb90ae5c2206, type: 3}
+      propertyPath: onTurnedOn.m_PersistentCalls.m_Calls.Array.size
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 6181120506807593953, guid: 259a687f298afcc4cbd0bb90ae5c2206, type: 3}
+      propertyPath: onTurnedOn.m_PersistentCalls.m_Calls.Array.data[0].m_Mode
+      value: 6
+      objectReference: {fileID: 0}
+    - target: {fileID: 6181120506807593953, guid: 259a687f298afcc4cbd0bb90ae5c2206, type: 3}
+      propertyPath: onTurnedOn.m_PersistentCalls.m_Calls.Array.data[0].m_Target
+      value: 
+      objectReference: {fileID: 2078543620}
+    - target: {fileID: 6181120506807593953, guid: 259a687f298afcc4cbd0bb90ae5c2206, type: 3}
+      propertyPath: onTurnedOn.m_PersistentCalls.m_Calls.Array.data[0].m_CallState
+      value: 2
+      objectReference: {fileID: 0}
+    - target: {fileID: 6181120506807593953, guid: 259a687f298afcc4cbd0bb90ae5c2206, type: 3}
+      propertyPath: onTurnedOn.m_PersistentCalls.m_Calls.Array.data[0].m_MethodName
+      value: SetActive
+      objectReference: {fileID: 0}
+    - target: {fileID: 6181120506807593953, guid: 259a687f298afcc4cbd0bb90ae5c2206, type: 3}
+      propertyPath: onTurnedOn.m_PersistentCalls.m_Calls.Array.data[0].m_TargetAssemblyTypeName
+      value: UnityEngine.GameObject, UnityEngine
+      objectReference: {fileID: 0}
+    - target: {fileID: 6181120506807593953, guid: 259a687f298afcc4cbd0bb90ae5c2206, type: 3}
+      propertyPath: onTurnedOn.m_PersistentCalls.m_Calls.Array.data[0].m_Arguments.m_BoolArgument
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 6181120506807593953, guid: 259a687f298afcc4cbd0bb90ae5c2206, type: 3}
+      propertyPath: onTurnedOn.m_PersistentCalls.m_Calls.Array.data[0].m_Arguments.m_ObjectArgumentAssemblyTypeName
+      value: UnityEngine.Object, UnityEngine
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -1828,6 +1860,79 @@ Tilemap:
     e31: 0
     e32: 0
     e33: 1
+--- !u!1 &71565604
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 71565605}
+  - component: {fileID: 71565607}
+  - component: {fileID: 71565606}
+  m_Layer: 0
+  m_Name: DialogueTrigger_OutOfTime
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &71565605
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 71565604}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 1427964699}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &71565606
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 71565604}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4ebe85c62f0693f4db3b5901428f3f73, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::GameTimerDialogueListener
+  timerUI: {fileID: 1372820197}
+  dialogueTrigger: {fileID: 71565607}
+  triggerImmediatelyIfAlreadyExpired: 1
+--- !u!114 &71565607
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 71565604}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b4adcc9a70214aa4896086d042dcf500, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::EventDialogueTrigger
+  speaker: 0
+  dialogueText: 
+  dialogueLines:
+  - text: Cagada! I knew time was a factor.
+    duration: 2.5
+  - text: Now they will never hear our interesting exposition...
+    duration: 3
+  portraitOverride: {fileID: 0}
+  useTypewriter: 1
+  displayDuration: 3.5
+  triggerOnce: 1
+  requiredTrueState: {fileID: 0}
+  requiredFalseState: {fileID: 0}
 --- !u!1001 &95147478
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -2802,6 +2907,38 @@ PrefabInstance:
       propertyPath: startingState
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 6181120506807593953, guid: 259a687f298afcc4cbd0bb90ae5c2206, type: 3}
+      propertyPath: onTurnedOn.m_PersistentCalls.m_Calls.Array.size
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 6181120506807593953, guid: 259a687f298afcc4cbd0bb90ae5c2206, type: 3}
+      propertyPath: onTurnedOn.m_PersistentCalls.m_Calls.Array.data[0].m_Mode
+      value: 6
+      objectReference: {fileID: 0}
+    - target: {fileID: 6181120506807593953, guid: 259a687f298afcc4cbd0bb90ae5c2206, type: 3}
+      propertyPath: onTurnedOn.m_PersistentCalls.m_Calls.Array.data[0].m_Target
+      value: 
+      objectReference: {fileID: 2078543620}
+    - target: {fileID: 6181120506807593953, guid: 259a687f298afcc4cbd0bb90ae5c2206, type: 3}
+      propertyPath: onTurnedOn.m_PersistentCalls.m_Calls.Array.data[0].m_CallState
+      value: 2
+      objectReference: {fileID: 0}
+    - target: {fileID: 6181120506807593953, guid: 259a687f298afcc4cbd0bb90ae5c2206, type: 3}
+      propertyPath: onTurnedOn.m_PersistentCalls.m_Calls.Array.data[0].m_MethodName
+      value: SetActive
+      objectReference: {fileID: 0}
+    - target: {fileID: 6181120506807593953, guid: 259a687f298afcc4cbd0bb90ae5c2206, type: 3}
+      propertyPath: onTurnedOn.m_PersistentCalls.m_Calls.Array.data[0].m_TargetAssemblyTypeName
+      value: UnityEngine.GameObject, UnityEngine
+      objectReference: {fileID: 0}
+    - target: {fileID: 6181120506807593953, guid: 259a687f298afcc4cbd0bb90ae5c2206, type: 3}
+      propertyPath: onTurnedOn.m_PersistentCalls.m_Calls.Array.data[0].m_Arguments.m_BoolArgument
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 6181120506807593953, guid: 259a687f298afcc4cbd0bb90ae5c2206, type: 3}
+      propertyPath: onTurnedOn.m_PersistentCalls.m_Calls.Array.data[0].m_Arguments.m_ObjectArgumentAssemblyTypeName
+      value: UnityEngine.Object, UnityEngine
+      objectReference: {fileID: 0}
     - target: {fileID: 6750981678831131597, guid: 259a687f298afcc4cbd0bb90ae5c2206, type: 3}
       propertyPath: m_IsActive
       value: 0
@@ -3480,6 +3617,103 @@ PrefabInstance:
     m_AddedGameObjects: []
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: c32cbbe8862cd184e93d76fb746eac7d, type: 3}
+--- !u!1001 &439311689
+PrefabInstance:
+  m_ObjectHideFlags: 0
+  serializedVersion: 2
+  m_Modification:
+    serializedVersion: 3
+    m_TransformParent: {fileID: 1427964699}
+    m_Modifications:
+    - target: {fileID: 2689799850906682317, guid: 5bd3d46b96b23fc43ae6fbef9bcf9813, type: 3}
+      propertyPath: m_Size.x
+      value: 25.287672
+      objectReference: {fileID: 0}
+    - target: {fileID: 2689799850906682317, guid: 5bd3d46b96b23fc43ae6fbef9bcf9813, type: 3}
+      propertyPath: m_Offset.x
+      value: 0.22194958
+      objectReference: {fileID: 0}
+    - target: {fileID: 5422746271883051085, guid: 5bd3d46b96b23fc43ae6fbef9bcf9813, type: 3}
+      propertyPath: dialogueText
+      value: ' '
+      objectReference: {fileID: 0}
+    - target: {fileID: 5422746271883051085, guid: 5bd3d46b96b23fc43ae6fbef9bcf9813, type: 3}
+      propertyPath: displayDuration
+      value: 2
+      objectReference: {fileID: 0}
+    - target: {fileID: 5422746271883051085, guid: 5bd3d46b96b23fc43ae6fbef9bcf9813, type: 3}
+      propertyPath: dialogueLines.Array.size
+      value: 2
+      objectReference: {fileID: 0}
+    - target: {fileID: 5422746271883051085, guid: 5bd3d46b96b23fc43ae6fbef9bcf9813, type: 3}
+      propertyPath: dialogueLines.Array.data[0].text
+      value: We should really head back, there has to be a way out.
+      objectReference: {fileID: 0}
+    - target: {fileID: 5422746271883051085, guid: 5bd3d46b96b23fc43ae6fbef9bcf9813, type: 3}
+      propertyPath: dialogueLines.Array.data[1].text
+      value: There's no time to boondoggle!
+      objectReference: {fileID: 0}
+    - target: {fileID: 5422746271883051085, guid: 5bd3d46b96b23fc43ae6fbef9bcf9813, type: 3}
+      propertyPath: dialogueLines.Array.data[0].duration
+      value: 3
+      objectReference: {fileID: 0}
+    - target: {fileID: 5422746271883051085, guid: 5bd3d46b96b23fc43ae6fbef9bcf9813, type: 3}
+      propertyPath: dialogueLines.Array.data[1].duration
+      value: 2.5
+      objectReference: {fileID: 0}
+    - target: {fileID: 6331688727121655574, guid: 5bd3d46b96b23fc43ae6fbef9bcf9813, type: 3}
+      propertyPath: m_Name
+      value: DialogueTrigger_PuzzleD_Leave
+      objectReference: {fileID: 0}
+    - target: {fileID: 6331688727121655574, guid: 5bd3d46b96b23fc43ae6fbef9bcf9813, type: 3}
+      propertyPath: m_IsActive
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7455510446515341170, guid: 5bd3d46b96b23fc43ae6fbef9bcf9813, type: 3}
+      propertyPath: m_LocalPosition.x
+      value: 0.03139448
+      objectReference: {fileID: 0}
+    - target: {fileID: 7455510446515341170, guid: 5bd3d46b96b23fc43ae6fbef9bcf9813, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: 50.9
+      objectReference: {fileID: 0}
+    - target: {fileID: 7455510446515341170, guid: 5bd3d46b96b23fc43ae6fbef9bcf9813, type: 3}
+      propertyPath: m_LocalPosition.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7455510446515341170, guid: 5bd3d46b96b23fc43ae6fbef9bcf9813, type: 3}
+      propertyPath: m_LocalRotation.w
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 7455510446515341170, guid: 5bd3d46b96b23fc43ae6fbef9bcf9813, type: 3}
+      propertyPath: m_LocalRotation.x
+      value: -0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7455510446515341170, guid: 5bd3d46b96b23fc43ae6fbef9bcf9813, type: 3}
+      propertyPath: m_LocalRotation.y
+      value: -0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7455510446515341170, guid: 5bd3d46b96b23fc43ae6fbef9bcf9813, type: 3}
+      propertyPath: m_LocalRotation.z
+      value: -0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7455510446515341170, guid: 5bd3d46b96b23fc43ae6fbef9bcf9813, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7455510446515341170, guid: 5bd3d46b96b23fc43ae6fbef9bcf9813, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7455510446515341170, guid: 5bd3d46b96b23fc43ae6fbef9bcf9813, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
+      objectReference: {fileID: 0}
+    m_RemovedComponents: []
+    m_RemovedGameObjects: []
+    m_AddedGameObjects: []
+    m_AddedComponents: []
+  m_SourcePrefab: {fileID: 100100000, guid: 5bd3d46b96b23fc43ae6fbef9bcf9813, type: 3}
 --- !u!1 &442553487
 GameObject:
   m_ObjectHideFlags: 0
@@ -10068,6 +10302,10 @@ Transform:
   - {fileID: 110014386}
   - {fileID: 1962247093}
   - {fileID: 1082762017}
+  - {fileID: 1910104160}
+  - {fileID: 2078543621}
+  - {fileID: 1996749216}
+  - {fileID: 71565605}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1445747713
@@ -10712,6 +10950,30 @@ MonoBehaviour:
         m_TargetAssemblyTypeName: UnityEngine.GameObject, UnityEngine
         m_MethodName: SetActive
         m_Mode: 6
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
+      - m_Target: {fileID: 2078543620}
+        m_TargetAssemblyTypeName: UnityEngine.GameObject, UnityEngine
+        m_MethodName: SetActive
+        m_Mode: 6
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
+      - m_Target: {fileID: 1996749217}
+        m_TargetAssemblyTypeName: EventDialogueTrigger, Assembly-CSharp
+        m_MethodName: TriggerDialogue
+        m_Mode: 1
         m_Arguments:
           m_ObjectArgument: {fileID: 0}
           m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
@@ -80620,6 +80882,89 @@ TilemapCollider2D:
   m_MaximumTileChangeCount: 1000
   m_ExtrusionFactor: 0
   m_UseDelaunayMesh: 0
+--- !u!1 &1910104159
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1910104160}
+  - component: {fileID: 1910104163}
+  - component: {fileID: 1910104162}
+  - component: {fileID: 1910104161}
+  m_Layer: 0
+  m_Name: DialogueTrigger_FirstmMarigoldKill
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &1910104160
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1910104159}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 1427964699}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1910104161
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1910104159}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 728f355d8b3d4c94f8b5e1895328a448, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::EnemyDeathDialogueListener
+  dialogueTrigger: {fileID: 1910104163}
+  listenerScope: 0
+  specificEnemy: {fileID: 0}
+  causeFilter: 2
+--- !u!114 &1910104162
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1910104159}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 8a410b213209442fb15a69799f0240a5, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UIElements.PanelEventHandler
+--- !u!114 &1910104163
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1910104159}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b4adcc9a70214aa4896086d042dcf500, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::EventDialogueTrigger
+  speaker: 0
+  dialogueText: I guess that's what they do.
+  dialogueLines: []
+  portraitOverride: {fileID: 0}
+  useTypewriter: 1
+  displayDuration: 2.5
+  triggerOnce: 1
+  requiredTrueState: {fileID: 0}
+  requiredFalseState: {fileID: 0}
 --- !u!1 &1912462453
 GameObject:
   m_ObjectHideFlags: 0
@@ -122410,6 +122755,70 @@ Transform:
   m_Children: []
   m_Father: {fileID: 29542427}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &1996749215
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1996749216}
+  - component: {fileID: 1996749217}
+  m_Layer: 0
+  m_Name: DialogeTrigger_PuzzleD_Completed
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &1996749216
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1996749215}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 1427964699}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1996749217
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1996749215}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b4adcc9a70214aa4896086d042dcf500, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::EventDialogueTrigger
+  speaker: 0
+  dialogueText: 
+  dialogueLines:
+  - text: Okay tortuga. No time to celebrate...
+    duration: 2.5
+  - text: We gotta get going before we both run out of time.
+    duration: 2.5
+  - text: There's no way you'll get home in time if you can't finish such a short
+      demo.
+    duration: 3
+  - text: And if you're gone it could be eons before I get my body back.
+    duration: 2.5
+  - text: Let's hope they like us enough to help us out one day.
+    duration: 3
+  portraitOverride: {fileID: 0}
+  useTypewriter: 1
+  displayDuration: 3.5
+  triggerOnce: 1
+  requiredTrueState: {fileID: 0}
+  requiredFalseState: {fileID: 0}
 --- !u!4 &2010380935 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 7455510446515341170, guid: 5bd3d46b96b23fc43ae6fbef9bcf9813, type: 3}
@@ -122505,6 +122914,16 @@ Transform:
 Transform:
   m_CorrespondingSourceObject: {fileID: 7455510446515341170, guid: 5bd3d46b96b23fc43ae6fbef9bcf9813, type: 3}
   m_PrefabInstance: {fileID: 1952892011}
+  m_PrefabAsset: {fileID: 0}
+--- !u!1 &2078543620 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 6331688727121655574, guid: 5bd3d46b96b23fc43ae6fbef9bcf9813, type: 3}
+  m_PrefabInstance: {fileID: 439311689}
+  m_PrefabAsset: {fileID: 0}
+--- !u!4 &2078543621 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: 7455510446515341170, guid: 5bd3d46b96b23fc43ae6fbef9bcf9813, type: 3}
+  m_PrefabInstance: {fileID: 439311689}
   m_PrefabAsset: {fileID: 0}
 --- !u!4 &2081847085 stripped
 Transform:

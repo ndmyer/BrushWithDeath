@@ -1,3 +1,4 @@
+using System;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
@@ -21,6 +22,9 @@ public class GameTimerUI : MonoBehaviour
     [System.NonSerialized] private RectTransform panelRoot;
     [System.NonSerialized] private Image backgroundImage;
     [System.NonSerialized] private TextMeshProUGUI timerLabel;
+
+    public event Action<GameTimer> TimerBound;
+    public GameTimer BoundTimer => timer;
 
     public static GameTimerUI Instance
     {
@@ -76,6 +80,7 @@ public class GameTimerUI : MonoBehaviour
         if (timer == targetTimer)
         {
             Refresh(timer != null ? timer.RemainingSeconds : 0f);
+            TimerBound?.Invoke(timer);
             return;
         }
 
@@ -86,6 +91,8 @@ public class GameTimerUI : MonoBehaviour
 
         if (timer != null)
             timer.TimeChanged += HandleTimeChanged;
+
+        TimerBound?.Invoke(timer);
 
         EnsureRuntimeSetup();
         Refresh(timer != null ? timer.RemainingSeconds : 0f);
