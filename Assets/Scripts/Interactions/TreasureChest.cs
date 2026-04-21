@@ -18,6 +18,7 @@ public class TreasureChest : MonoBehaviour
     [Header("Key Reveal")]
     [SerializeField] private GameObject keyPickupPrefab;
     [SerializeField] private Transform keySpawnPoint;
+    [SerializeField] private EventDialogueTrigger keyCollectedDialogueTrigger;
 
     [Header("Audio")]
     [SerializeField] private AudioClip openSound;
@@ -170,7 +171,16 @@ public class TreasureChest : MonoBehaviour
         if (keyPickupPrefab == null || keySpawnPoint == null)
             return;
 
-        Instantiate(keyPickupPrefab, keySpawnPoint.position, Quaternion.identity);
+        GameObject keyInstance = Instantiate(keyPickupPrefab, keySpawnPoint.position, Quaternion.identity);
+
+        if (keyCollectedDialogueTrigger == null)
+            return;
+
+        KeyPickup keyPickup = keyInstance.GetComponent<KeyPickup>();
+        if (keyPickup == null)
+            keyPickup = keyInstance.GetComponentInChildren<KeyPickup>();
+
+        keyPickup?.AddOnCollectedListener(keyCollectedDialogueTrigger.TriggerDialogue);
     }
 
     private void BuildOpenSprites(Sprite resolvedFinalFrame)

@@ -188,6 +188,17 @@ MonoBehaviour:
   explosionSpriteRenderer: {fileID: 44535992}
   travelTrails: []
   travelParticleEffects: []
+  travelAnimationFrames:
+  - {fileID: -238205330039314226, guid: b2985874c1182ba49ac2da665d529234, type: 3}
+  - {fileID: -3475809619612004526, guid: b2985874c1182ba49ac2da665d529234, type: 3}
+  - {fileID: 8418830784644341413, guid: b2985874c1182ba49ac2da665d529234, type: 3}
+  - {fileID: 6756190659845709209, guid: b2985874c1182ba49ac2da665d529234, type: 3}
+  - {fileID: -8585621893430523502, guid: b2985874c1182ba49ac2da665d529234, type: 3}
+  - {fileID: -267434308748246977, guid: b2985874c1182ba49ac2da665d529234, type: 3}
+  - {fileID: 5309856628296013895, guid: b2985874c1182ba49ac2da665d529234, type: 3}
+  - {fileID: 2876102786694714496, guid: b2985874c1182ba49ac2da665d529234, type: 3}
+  travelAnimationFramesPerSecond: 16
+  travelRotationOffset: -90
   pulseAttackAnimationFrames:
   - {fileID: 5292914565219399551, guid: 804c621b324c94f4ab8d3d24e45f65d5, type: 3}
   - {fileID: 8492610001576941398, guid: 804c621b324c94f4ab8d3d24e45f65d5, type: 3}

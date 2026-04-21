@@ -25,6 +25,11 @@ public class PistaController : MonoBehaviour
     [SerializeField] private TrailRenderer[] travelTrails;
     [SerializeField] private ParticleSystem[] travelParticleEffects;
 
+    [Header("Travel Visuals")]
+    [SerializeField] private Sprite[] travelAnimationFrames;
+    [SerializeField, Min(0f)] private float travelAnimationFramesPerSecond = 16f;
+    [SerializeField] private float travelRotationOffset = -90f;
+
     [Header("Pulse Attack Visuals")]
     [SerializeField] private Sprite[] pulseAttackAnimationFrames;
     [SerializeField, Min(0f)] private float pulseAttackAnimationFramesPerSecond = 16f;
@@ -60,8 +65,10 @@ public class PistaController : MonoBehaviour
     private Transform playerTarget;
     private bool aimStickEngaged;
     private Sprite defaultTravelSprite;
+    private Quaternion defaultTravelLocalRotation = Quaternion.identity;
     private Sprite defaultExplosionSprite;
     private bool isPlayingPulseAttackAnimation;
+    private float travelAnimationElapsedTime;
     private float pulseAttackAnimationElapsedTime;
     private bool travelVisualsActive;
     private TravelDestination currentTravelDestination;
@@ -78,7 +85,10 @@ public class PistaController : MonoBehaviour
             travelSpriteRenderer = GetComponent<SpriteRenderer>();
 
         if (travelSpriteRenderer != null)
+        {
             defaultTravelSprite = travelSpriteRenderer.sprite;
+            defaultTravelLocalRotation = travelSpriteRenderer.transform.localRotation;
+        }
 
         if (explosionSpriteRenderer == null)
             explosionSpriteRenderer = FindExplosionSpriteRenderer();
@@ -125,6 +135,7 @@ public class PistaController : MonoBehaviour
         }
 
         UpdatePulseAttackAnimation();
+        UpdateTravelAnimation();
         ApplyTravelVisualState();
     }
 
@@ -327,6 +338,7 @@ public class PistaController : MonoBehaviour
 
         Vector3 previousPosition = transform.position;
         MoveToward(destinationPosition, travelSpeed);
+        UpdateTravelRotation((Vector2)(transform.position - previousPosition));
         ActivateSwitchesAlongTravel(previousPosition, transform.position);
 
         if ((destinationPosition - transform.position).sqrMagnitude > arrivalDistance * arrivalDistance)
@@ -372,8 +384,32 @@ public class PistaController : MonoBehaviour
         if (CurrentState == newState)
             return;
 
+        bool wasTraveling = CurrentState == PistaState.Traveling;
         CurrentState = newState;
-        ApplyTravelVisualState();
+
+        if (!wasTraveling && newState == PistaState.Traveling)
+            BeginTravelAnimation();
+        else if (wasTraveling && newState != PistaState.Traveling)
+            StopTravelAnimation();
+
+        ApplyTravelVisualState(forceRefresh: true);
+    }
+
+    private void BeginTravelAnimation()
+    {
+        travelAnimationElapsedTime = 0f;
+        ApplyTravelAnimationFrame(0);
+        ResetTravelRotation();
+    }
+
+    private void StopTravelAnimation()
+    {
+        travelAnimationElapsedTime = 0f;
+
+        if (travelSpriteRenderer != null && defaultTravelSprite != null)
+            travelSpriteRenderer.sprite = defaultTravelSprite;
+
+        ResetTravelRotation();
     }
 
     private void BeginPulseAttackAnimation()
@@ -437,8 +473,18 @@ public class PistaController : MonoBehaviour
 
         if (travelSpriteRenderer != null)
         {
-            if (shouldShowTravelVisuals && !isPlayingPulseAttackAnimation && defaultTravelSprite != null)
-                travelSpriteRenderer.sprite = defaultTravelSprite;
+            if (shouldShowTravelVisuals)
+            {
+                if (forceRefresh)
+                    ApplyTravelAnimationFrame(0);
+            }
+            else
+            {
+                if (defaultTravelSprite != null)
+                    travelSpriteRenderer.sprite = defaultTravelSprite;
+
+                ResetTravelRotation();
+            }
 
             travelSpriteRenderer.enabled = shouldShowTravelVisuals;
         }
@@ -485,6 +531,59 @@ public class PistaController : MonoBehaviour
                 particleEffect.Stop(true, ParticleSystemStopBehavior.StopEmittingAndClear);
             }
         }
+    }
+
+    private void UpdateTravelAnimation()
+    {
+        if (CurrentState != PistaState.Traveling)
+            return;
+
+        if (!HasSprites(travelAnimationFrames))
+        {
+            if (travelSpriteRenderer != null && defaultTravelSprite != null)
+                travelSpriteRenderer.sprite = defaultTravelSprite;
+
+            return;
+        }
+
+        if (travelAnimationFramesPerSecond <= 0f)
+        {
+            ApplyTravelAnimationFrame(0);
+            return;
+        }
+
+        travelAnimationElapsedTime += Time.deltaTime;
+        int frameIndex = Mathf.FloorToInt(travelAnimationElapsedTime * travelAnimationFramesPerSecond) % travelAnimationFrames.Length;
+        ApplyTravelAnimationFrame(frameIndex);
+    }
+
+    private void ApplyTravelAnimationFrame(int frameIndex)
+    {
+        if (travelSpriteRenderer == null)
+            return;
+
+        Sprite sprite = defaultTravelSprite;
+
+        if (travelAnimationFrames != null && frameIndex >= 0 && frameIndex < travelAnimationFrames.Length)
+            sprite = travelAnimationFrames[frameIndex] != null ? travelAnimationFrames[frameIndex] : GetFirstAvailableSprite(travelAnimationFrames);
+
+        if (sprite != null)
+            travelSpriteRenderer.sprite = sprite;
+    }
+
+    private void UpdateTravelRotation(Vector2 movementDelta)
+    {
+        if (travelSpriteRenderer == null || movementDelta.sqrMagnitude <= Mathf.Epsilon)
+            return;
+
+        float angle = Mathf.Atan2(movementDelta.y, movementDelta.x) * Mathf.Rad2Deg + travelRotationOffset;
+        travelSpriteRenderer.transform.localRotation = Quaternion.AngleAxis(angle, Vector3.forward) * defaultTravelLocalRotation;
+    }
+
+    private void ResetTravelRotation()
+    {
+        if (travelSpriteRenderer != null)
+            travelSpriteRenderer.transform.localRotation = defaultTravelLocalRotation;
     }
 
     private void ActivateSwitchesAlongTravel(Vector2 startPosition, Vector2 endPosition)

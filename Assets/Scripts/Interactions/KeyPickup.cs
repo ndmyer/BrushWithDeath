@@ -9,6 +9,18 @@ public class KeyPickup : MonoBehaviour
 
     private bool hasBeenCollected;
 
+    public void AddOnCollectedListener(UnityAction listener)
+    {
+        if (listener != null)
+            onCollected.AddListener(listener);
+    }
+
+    public void RemoveOnCollectedListener(UnityAction listener)
+    {
+        if (listener != null)
+            onCollected.RemoveListener(listener);
+    }
+
     private void Reset()
     {
         EnsureTriggerCollider();
