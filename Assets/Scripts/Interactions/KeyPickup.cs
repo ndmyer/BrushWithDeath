@@ -36,9 +36,6 @@ public class KeyPickup : MonoBehaviour
         if (hasBeenCollected || !TryGetPlayerProgression(other, out PlayerProgression progression))
             return;
 
-        if (progression.HasKey)
-            return;
-
         hasBeenCollected = true;
         progression.CollectKey();
         GameSfx.PlayDetached(GameSfxCue.CollectKey, transform.position);

@@ -11,8 +11,13 @@ public class DialogueBoxUI : MonoBehaviour
     [Header("References")]
     [SerializeField] private RectTransform dialogueRoot;
     [SerializeField] private CanvasGroup dialogueCanvasGroup;
+    [SerializeField] private Canvas dialogueCanvas;
     [SerializeField] private Image portraitImage;
     [SerializeField] private TextMeshProUGUI dialogueText;
+
+    [Header("Layering")]
+    [SerializeField] private bool overrideSorting = true;
+    [SerializeField] private int sortingOrder = 200;
 
     [Header("Portrait Defaults")]
     [SerializeField] private Sprite defaultSignPortrait;
@@ -48,13 +53,18 @@ public class DialogueBoxUI : MonoBehaviour
         }
 
         instance = this;
-        CacheReferences();
+        CacheReferences(allowCreateComponents: true);
         HideImmediate();
+    }
+
+    private void Start()
+    {
+        ApplyCanvasSorting();
     }
 
     private void OnValidate()
     {
-        CacheReferences();
+        CacheReferences(allowCreateComponents: false);
     }
 
     public void ShowSign(DialogueLine[] lines, Sprite portraitOverride = null, bool useTypewriter = false)
@@ -114,7 +124,8 @@ public class DialogueBoxUI : MonoBehaviour
 
     private void Show(DialogueLine[] lines, Sprite portrait, bool useTypewriter, bool playPistaVoice)
     {
-        CacheReferences();
+        CacheReferences(allowCreateComponents: true);
+        ApplyCanvasSorting();
 
         if (dialogueRoot == null)
         {
@@ -166,7 +177,7 @@ public class DialogueBoxUI : MonoBehaviour
         SetVisible(false);
     }
 
-    private void CacheReferences()
+    private void CacheReferences(bool allowCreateComponents)
     {
         if (dialogueRoot == null)
             dialogueRoot = transform as RectTransform;
@@ -174,15 +185,31 @@ public class DialogueBoxUI : MonoBehaviour
         if (dialogueRoot != null && dialogueCanvasGroup == null)
         {
             dialogueCanvasGroup = dialogueRoot.GetComponent<CanvasGroup>();
-            if (dialogueCanvasGroup == null)
+            if (dialogueCanvasGroup == null && allowCreateComponents)
                 dialogueCanvasGroup = dialogueRoot.gameObject.AddComponent<CanvasGroup>();
         }
+
+        if (dialogueRoot != null && dialogueCanvas == null)
+            dialogueCanvas = dialogueRoot.GetComponent<Canvas>();
+
+        if (dialogueRoot != null && dialogueCanvas == null && allowCreateComponents)
+            dialogueCanvas = dialogueRoot.gameObject.AddComponent<Canvas>();
 
         if (dialogueText == null)
             dialogueText = GetComponentInChildren<TextMeshProUGUI>(true);
 
         if (portraitImage == null)
             portraitImage = GetComponentInChildren<Image>(true);
+    }
+
+    private void ApplyCanvasSorting()
+    {
+        if (!Application.isPlaying || dialogueCanvas == null)
+            return;
+
+        dialogueCanvas.overrideSorting = overrideSorting;
+        if (overrideSorting)
+            dialogueCanvas.sortingOrder = sortingOrder;
     }
 
     private bool CanDisplayLines(DialogueLine[] lines)

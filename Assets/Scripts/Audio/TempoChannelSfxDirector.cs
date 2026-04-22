@@ -8,7 +8,7 @@ public sealed class TempoChannelSfxDirector : MonoBehaviour
     [SerializeField] private TempoService tempoService;
     [SerializeField] private AudioSource audioSource;
     [SerializeField] private AudioMixerGroup outputMixerGroup;
-    [SerializeField, Range(0f, 1f)] private float loopVolume = 1f;
+    [SerializeField, Range(0f, 8f)] private float loopVolume = 8f;
     [SerializeField] private bool ignoreListenerPause = true;
 
     private TempoService subscribedTempoService;
@@ -66,7 +66,7 @@ public sealed class TempoChannelSfxDirector : MonoBehaviour
 
         activeTempo = snapshot.TargetTempo;
         audioSource.clip = targetLoop;
-        audioSource.volume = Mathf.Clamp01(loopVolume);
+        audioSource.volume = Mathf.Max(0f, loopVolume);
         audioSource.Play();
     }
 

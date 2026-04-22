@@ -1,6 +1,8 @@
 using System.Collections;
 using UnityEngine;
 using UnityEngine.SceneManagement;
+using UnityEngine.Serialization;
+using UnityEngine.Tilemaps;
 
 [DisallowMultipleComponent]
 [RequireComponent(typeof(Collider2D))]
@@ -11,19 +13,30 @@ public class LevelExitSequenceTrigger : MonoBehaviour
     [SerializeField] private PlayerMotor playerMotor;
     [SerializeField] private Transform endPosition;
     [SerializeField] private EventDialogueTrigger dialogueTrigger;
+    [SerializeField] private Tilemap revealedPathTilemap;
+    [SerializeField] private AudioClip exitMusicClip;
+    [SerializeField] private GameTimer gameTimer;
 
     [Header("Movement")]
     [SerializeField, Min(0.01f)] private float walkSpeed = 2.5f;
     [SerializeField, Min(0.01f)] private float arrivalDistance = 0.05f;
 
     [Header("Exit Timing")]
-    [SerializeField, Min(0f)] private float fadeDelay = 1.5f;
+    [FormerlySerializedAs("fadeDelay")]
+    [SerializeField, Min(0f)] private float fadeStartDelay = 1.5f;
     [SerializeField, Min(0f)] private float fadeDuration = 1f;
-    [SerializeField, Min(0f)] private float returnToMenuDelay = 2f;
+    [FormerlySerializedAs("returnToMenuDelay")]
+    [SerializeField, Min(0f)] private float mainMenuDelayAfterFadeStart = 2f;
     [SerializeField] private string mainMenuScenePath = "Assets/Scenes/MainMenu.unity";
+
+    [Header("Audio")]
+    [SerializeField, Range(0f, 1f)] private float exitMusicVolume = 1f;
+    [SerializeField, Min(0f)] private float backgroundMusicFadeDuration = 1f;
 
     private Collider2D triggerCollider;
     private bool hasTriggered;
+    private AudioSource exitMusicSource;
+    private TempoMusicDirector tempoMusicDirector;
 
     private void Reset()
     {
@@ -76,11 +89,15 @@ public class LevelExitSequenceTrigger : MonoBehaviour
             triggerCollider.enabled = false;
 
         playerController.SetState(PlayerController.PlayerState.Dialogue);
+        gameTimer?.PauseTimer();
         dialogueTrigger?.TryTriggerDialogue();
+        SetExitPathVisible(true);
+        FadeOutBackgroundMusic();
+        PlayExitMusic();
+        StartCoroutine(FadeAndReturnRoutine());
 
         Transform playerTransform = playerController.transform;
         float arrivalDistanceSqr = arrivalDistance * arrivalDistance;
-        float fadeStartTime = Time.unscaledTime + fadeDelay;
 
         while (true)
         {
@@ -97,17 +114,26 @@ public class LevelExitSequenceTrigger : MonoBehaviour
         Vector3 playerPosition = playerTransform.position;
         Vector3 targetPosition = endPosition.position;
         playerTransform.position = new Vector3(targetPosition.x, targetPosition.y, playerPosition.z);
+    }
 
-        float waitForFade = fadeStartTime - Time.unscaledTime;
-        if (waitForFade > 0f)
-            yield return new WaitForSecondsRealtime(waitForFade);
+    private IEnumerator FadeAndReturnRoutine()
+    {
+        if (fadeStartDelay > 0f)
+            yield return new WaitForSecondsRealtime(fadeStartDelay);
 
         DeathScreenUI deathScreen = DeathScreenUI.Instance;
         if (deathScreen != null)
-            yield return deathScreen.FadeToBlack(fadeDuration);
+        {
+            Debug.Log($"LevelExitSequenceTrigger starting fade for {fadeDuration:0.##} seconds.", this);
+            StartCoroutine(deathScreen.FadeToBlack(fadeDuration));
+        }
+        else
+        {
+            Debug.LogWarning("LevelExitSequenceTrigger could not find DeathScreenUI. Loading main menu without fade.", this);
+        }
 
-        if (returnToMenuDelay > 0f)
-            yield return new WaitForSecondsRealtime(returnToMenuDelay);
+        if (mainMenuDelayAfterFadeStart > 0f)
+            yield return new WaitForSecondsRealtime(mainMenuDelayAfterFadeStart);
 
         LoadMainMenu();
     }
@@ -125,6 +151,58 @@ public class LevelExitSequenceTrigger : MonoBehaviour
 
         if (dialogueTrigger == null)
             dialogueTrigger = GetComponent<EventDialogueTrigger>();
+
+        if (exitMusicSource == null)
+            exitMusicSource = GetComponent<AudioSource>();
+
+        if (tempoMusicDirector == null)
+            tempoMusicDirector = TempoMusicDirector.Instance != null ? TempoMusicDirector.Instance : FindAnyObjectByType<TempoMusicDirector>();
+
+        if (gameTimer == null)
+            gameTimer = GameTimer.Instance != null ? GameTimer.Instance : FindAnyObjectByType<GameTimer>();
+    }
+
+    private void SetExitPathVisible(bool isVisible)
+    {
+        if (revealedPathTilemap == null)
+            return;
+
+        Color tilemapColor = revealedPathTilemap.color;
+        tilemapColor.a = isVisible ? 1f : 0f;
+        revealedPathTilemap.color = tilemapColor;
+
+        TilemapRenderer tilemapRenderer = revealedPathTilemap.GetComponent<TilemapRenderer>();
+        if (tilemapRenderer != null)
+            tilemapRenderer.enabled = isVisible;
+    }
+
+    private void PlayExitMusic()
+    {
+        if (exitMusicClip == null)
+            return;
+
+        if (exitMusicSource == null)
+        {
+            exitMusicSource = GetComponent<AudioSource>();
+            if (exitMusicSource == null)
+                exitMusicSource = gameObject.AddComponent<AudioSource>();
+        }
+
+        exitMusicSource.playOnAwake = false;
+        exitMusicSource.loop = false;
+        exitMusicSource.ignoreListenerPause = true;
+        exitMusicSource.spatialBlend = 0f;
+        exitMusicSource.volume = exitMusicVolume;
+        exitMusicSource.clip = exitMusicClip;
+        exitMusicSource.Play();
+    }
+
+    private void FadeOutBackgroundMusic()
+    {
+        if (tempoMusicDirector == null)
+            tempoMusicDirector = TempoMusicDirector.Instance != null ? TempoMusicDirector.Instance : FindAnyObjectByType<TempoMusicDirector>();
+
+        tempoMusicDirector?.FadeOut(backgroundMusicFadeDuration);
     }
 
     private void LoadMainMenu()

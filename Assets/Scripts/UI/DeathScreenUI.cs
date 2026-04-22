@@ -1,13 +1,16 @@
 using System.Collections;
 using UnityEngine;
+using UnityEngine.UI;
 
 [DisallowMultipleComponent]
 public class DeathScreenUI : MonoBehaviour
 {
     private static DeathScreenUI instance;
+    private const string FadeImageObjectName = "FadeImage";
 
     [SerializeField] private RectTransform deathScreenRoot;
     [SerializeField] private CanvasGroup deathScreenCanvasGroup;
+    [SerializeField] private Image fadeImage;
 
     [Header("Fade")]
     [SerializeField, Min(0f)] private float fadeOutDuration = 0.35f;
@@ -71,6 +74,19 @@ public class DeathScreenUI : MonoBehaviour
             if (deathScreenCanvasGroup == null)
                 deathScreenCanvasGroup = deathScreenRoot.gameObject.AddComponent<CanvasGroup>();
         }
+
+        if (fadeImage == null)
+            fadeImage = GetComponentInChildren<Image>(true);
+
+        if (fadeImage == null)
+        {
+            Transform fadeImageTransform = transform.Find(FadeImageObjectName);
+            if (fadeImageTransform != null)
+                fadeImage = fadeImageTransform.GetComponent<Image>();
+        }
+
+        if (fadeImage == null)
+            fadeImage = CreateRuntimeFadeImage();
     }
 
     private IEnumerator FadeToAlpha(float targetAlpha, float duration)
@@ -111,5 +127,35 @@ public class DeathScreenUI : MonoBehaviour
         bool isVisible = deathScreenCanvasGroup.alpha > 0.001f;
         deathScreenCanvasGroup.interactable = isVisible;
         deathScreenCanvasGroup.blocksRaycasts = isVisible;
+
+        if (fadeImage != null)
+        {
+            Color imageColor = fadeImage.color;
+            imageColor.a = deathScreenCanvasGroup.alpha;
+            fadeImage.color = imageColor;
+            fadeImage.enabled = isVisible;
+        }
+    }
+
+    private Image CreateRuntimeFadeImage()
+    {
+        if (deathScreenRoot == null)
+            return null;
+
+        GameObject fadeImageObject = new(FadeImageObjectName, typeof(RectTransform), typeof(CanvasRenderer), typeof(Image));
+        fadeImageObject.transform.SetParent(deathScreenRoot, false);
+
+        RectTransform fadeRect = fadeImageObject.GetComponent<RectTransform>();
+        fadeRect.anchorMin = Vector2.zero;
+        fadeRect.anchorMax = Vector2.one;
+        fadeRect.offsetMin = Vector2.zero;
+        fadeRect.offsetMax = Vector2.zero;
+        fadeRect.SetAsLastSibling();
+
+        Image runtimeImage = fadeImageObject.GetComponent<Image>();
+        runtimeImage.color = Color.black;
+        runtimeImage.raycastTarget = true;
+        runtimeImage.enabled = false;
+        return runtimeImage;
     }
 }

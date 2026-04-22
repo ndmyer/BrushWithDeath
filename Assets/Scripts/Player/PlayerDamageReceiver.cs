@@ -55,7 +55,7 @@ public class PlayerDamageReceiver : MonoBehaviour, IDamageable
         nextDamageTime = Time.time + invulnerabilityDuration;
 
         if (!isLethalDamage)
-            GameSfx.Play(this, GameSfxCue.PlayerHit, pitchVariance: 0.03f, volumeVariance: 0.04f);
+            GameSfx.Play(this, GameSfxCue.PlayerHit, 0.5f, pitchVariance: 0.03f, volumeVariance: 0.04f);
 
         if (interruptTempoOnDamage && playerController != null)
             playerController.InterruptTempoFocus(allowGraceCompletion: false);

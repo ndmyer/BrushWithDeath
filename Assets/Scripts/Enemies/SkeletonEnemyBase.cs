@@ -270,7 +270,7 @@ public abstract class SkeletonEnemyBase : MonoBehaviour, IKnockbackable
         desiredVelocity = Vector2.zero;
         knockbackVelocity = knockbackDirection * (totalDistance / duration);
         knockbackTimer = duration;
-        GameSfx.Play(this, GetDamageSfxCue(), pitchVariance: 0.03f, volumeVariance: 0.04f);
+        GameSfx.Play(this, GetDamageSfxCue(), 0.75f, pitchVariance: 0.03f, volumeVariance: 0.04f);
     }
 
     public void ApplyKnockbackFrom(Vector2 sourcePosition, float strengthMultiplier = 1f)

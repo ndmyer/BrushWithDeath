@@ -5,6 +5,7 @@ using UnityEngine;
 public class LockedDoor : MonoBehaviour
 {
     [SerializeField] private bool startsOpen;
+    [SerializeField] private GameSfxCue openSfxCue = GameSfxCue.LockedDoorOpened;
 
     [Header("References")]
     [SerializeField] private Collider2D[] blockingColliders;
@@ -49,7 +50,7 @@ public class LockedDoor : MonoBehaviour
             return;
 
         SetOpenState(true);
-        GameSfx.Play(this, GameSfxCue.LockedDoorOpened);
+        GameSfx.Play(this, openSfxCue);
     }
 
     public void Close()

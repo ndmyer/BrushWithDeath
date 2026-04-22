@@ -128,7 +128,10 @@ public class TempoReceiverGroupPuzzle : MonoBehaviour
             return;
 
         if (allReceiversCompleted)
+        {
+            GameSfx.Play(this, GameSfxCue.PuzzleSolved);
             onSolved?.Invoke();
+        }
         else
             onReset?.Invoke();
     }

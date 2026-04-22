@@ -318,7 +318,6 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::TempoGroundIndicator
   tempoService: {fileID: 0}
-  indicatorMaterial: {fileID: 2100000, guid: 5e754736d4a7c1f46914bcd8e8bb8f32, type: 2}
   localOffset: {x: 0, y: 0, z: 0}
   worldSize: {x: 4, y: 4}
   baseSortingOrder: -2
@@ -345,6 +344,7 @@ MonoBehaviour:
   midColor: {r: 0.93, g: 0.77, b: 0.34, a: 1}
   fastColor: {r: 0.96, g: 0.49, b: 0.25, a: 1}
   intenseColor: {r: 0.88, g: 0.2, b: 0.28, a: 1}
+  indicatorMaterial: {fileID: 2100000, guid: 5e754736d4a7c1f46914bcd8e8bb8f32, type: 2}
 --- !u!114 &2742409629054271828
 MonoBehaviour:
   m_ObjectHideFlags: 0

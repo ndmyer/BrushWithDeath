@@ -3,6 +3,13 @@ using UnityEngine;
 
 public class PistaController : MonoBehaviour
 {
+    private const float TravelSendChance = 0.5f;
+    private const float TravelSendVolumeScale = 0.35f;
+    private const float TravelReturnChance = 0.5f;
+    private const float TravelReturnVolumeScale = 0.5f;
+    private const float TravelYapChance = 0.55f;
+    private const float TravelYapVolumeScale = 0.65f;
+
     public enum PistaState
     {
         FollowingPlayer,
@@ -182,15 +189,23 @@ public class PistaController : MonoBehaviour
         if (lanternTarget == null)
             return;
 
+        bool isLeavingPlayer = CurrentLanternTarget == null;
+
         CurrentPreviewTarget = null;
         CurrentLanternTarget = lanternTarget;
         activatedSwitchesThisTravel.Clear();
         currentTravelDestination = TravelDestination.Lantern;
+
+        if (isLeavingPlayer)
+            TryPlayTravelSend();
+
         SetState(PistaState.Traveling);
     }
 
     public void RecallToPlayer()
     {
+        bool isReturningFromLantern = CurrentLanternTarget != null;
+
         CurrentLanternTarget = null;
         CurrentPreviewTarget = null;
         aimStickEngaged = false;
@@ -204,7 +219,10 @@ public class PistaController : MonoBehaviour
         }
 
         currentTravelDestination = TravelDestination.Player;
-        GameSfx.Play(this, GameSfxCue.PistaReturn, pitchVariance: 0.02f);
+
+        if (isReturningFromLantern)
+            TryPlayTravelReturn();
+
         SetState(PistaState.Traveling);
     }
 
@@ -221,7 +239,10 @@ public class PistaController : MonoBehaviour
 
     public int TriggerPulseAttack()
     {
-        if (CurrentState != PistaState.LatchedToLantern || CurrentLanternTarget == null)
+        bool canPulseFromLantern = CurrentLanternTarget != null
+            && (CurrentState == PistaState.Aiming || CurrentState == PistaState.LatchedToLantern);
+
+        if (!canPulseFromLantern)
             return 0;
 
         ContactFilter2D contactFilter = CreatePulseAttackContactFilter();
@@ -252,7 +273,7 @@ public class PistaController : MonoBehaviour
             return;
 
         float inputMagnitude = aimInput.magnitude;
-        bool isLatched = CurrentState == PistaState.LatchedToLantern;
+        bool hasLatchedLantern = CurrentLanternTarget != null;
 
         if (inputMagnitude >= stickEngageThreshold)
         {
@@ -266,7 +287,9 @@ public class PistaController : MonoBehaviour
         {
             CurrentPreviewTarget = null;
 
-            if (!isLatched)
+            if (hasLatchedLantern)
+                SetState(PistaState.LatchedToLantern);
+            else
                 BeginAiming();
 
             return;
@@ -282,9 +305,15 @@ public class PistaController : MonoBehaviour
                 CurrentPreviewTarget = null;
                 return;
             }
+
+            if (hasLatchedLantern)
+            {
+                SetState(PistaState.LatchedToLantern);
+                return;
+            }
         }
 
-        if (!isLatched)
+        if (!hasLatchedLantern)
             BeginAiming();
     }
 
@@ -351,14 +380,38 @@ public class PistaController : MonoBehaviour
         if (currentTravelDestination == TravelDestination.Lantern)
         {
             currentTravelDestination = TravelDestination.None;
-            GameSfx.Play(this, GameSfxCue.PistaYap, pitchVariance: 0.05f, volumeVariance: 0.05f);
+            TryPlayTravelYap();
             SetState(PistaState.LatchedToLantern);
             return;
         }
 
         currentTravelDestination = TravelDestination.None;
-        GameSfx.Play(this, GameSfxCue.PistaYap, pitchVariance: 0.05f, volumeVariance: 0.05f);
+        TryPlayTravelYap();
         SetState(PistaState.FollowingPlayer);
+    }
+
+    private void TryPlayTravelYap()
+    {
+        if (Random.value > TravelYapChance)
+            return;
+
+        GameSfx.Play(this, GameSfxCue.PistaYap, TravelYapVolumeScale, pitchVariance: 0.05f, volumeVariance: 0.05f);
+    }
+
+    private void TryPlayTravelSend()
+    {
+        if (Random.value > TravelSendChance)
+            return;
+
+        GameSfx.Play(this, GameSfxCue.PistaSend, TravelSendVolumeScale, pitchVariance: 0.02f);
+    }
+
+    private void TryPlayTravelReturn()
+    {
+        if (Random.value > TravelReturnChance)
+            return;
+
+        GameSfx.Play(this, GameSfxCue.PistaReturn, TravelReturnVolumeScale, pitchVariance: 0.02f);
     }
 
     private void SnapToLanternTarget()

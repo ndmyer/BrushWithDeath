@@ -42,6 +42,7 @@ public class TempoMusicDirector : MonoBehaviour
     [Header("Transition Settings")]
     [SerializeField, Min(0f)] private float defaultSetTransitionDuration = 1f;
     [SerializeField, Range(0f, 1f)] private float masterVolume = 1f;
+    [SerializeField, Min(0f)] private float radioCrossfadeSpeed = 3f;
 
     [Header("Source Settings")]
     [SerializeField] private bool loopSources = true;
@@ -57,6 +58,8 @@ public class TempoMusicDirector : MonoBehaviour
     private bool isSetTransitioning;
     private float setTransitionDuration;
     private float setTransitionElapsed;
+    private Transform playerTransform;
+    private float radioCrossfadeBlend;
 
     public static TempoMusicDirector Instance
     {
@@ -108,6 +111,7 @@ public class TempoMusicDirector : MonoBehaviour
     {
         TryBindTempoService();
         currentSnapshot = GetTempoSnapshot();
+        UpdateRadioCrossfadeBlend();
         UpdateSetTransition();
         ApplyBankVolumes();
     }
@@ -135,6 +139,11 @@ public class TempoMusicDirector : MonoBehaviour
     public void PlaySet(TempoMusicSet musicSet, float transitionDuration = -1f)
     {
         TransitionToSet(musicSet, ResolveTransitionDuration(transitionDuration));
+    }
+
+    public void FadeOut(float transitionDuration = -1f)
+    {
+        TransitionToSet(null, ResolveTransitionDuration(transitionDuration));
     }
 
     public void PlayDefaultSet(bool immediate = false)
@@ -323,7 +332,7 @@ public class TempoMusicDirector : MonoBehaviour
                 continue;
 
             TempoMusicSet musicSet = bank.MusicSet;
-            float bankWeight = Mathf.Clamp01(bank.Weight) * masterVolume;
+            float bankWeight = Mathf.Clamp01(bank.Weight) * masterVolume * (1f - radioCrossfadeBlend);
 
             if (musicSet == null || bankWeight <= Mathf.Epsilon)
             {
@@ -593,6 +602,19 @@ public class TempoMusicDirector : MonoBehaviour
     private float ResolveTransitionDuration(float transitionDuration)
     {
         return transitionDuration >= 0f ? transitionDuration : defaultSetTransitionDuration;
+    }
+
+    private void UpdateRadioCrossfadeBlend()
+    {
+        if (playerTransform == null)
+        {
+            PlayerController playerController = FindAnyObjectByType<PlayerController>();
+            if (playerController != null)
+                playerTransform = playerController.transform;
+        }
+
+        float targetBlend = playerTransform != null ? RadioController.GetStrongestBlendAt(playerTransform.position) : 0f;
+        radioCrossfadeBlend = Mathf.MoveTowards(radioCrossfadeBlend, targetBlend, Mathf.Max(0f, radioCrossfadeSpeed) * Time.deltaTime);
     }
 
     private static void SetSourceVolume(AudioSource source, float volume)

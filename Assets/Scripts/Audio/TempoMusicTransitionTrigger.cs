@@ -16,6 +16,8 @@ public class TempoMusicTransitionTrigger : MonoBehaviour
     private void Awake()
     {
         EnsureTriggerCollider();
+        PreloadSet(set1);
+        PreloadSet(set2);
     }
 
     private void Reset()
@@ -47,6 +49,24 @@ public class TempoMusicTransitionTrigger : MonoBehaviour
         PolygonCollider2D collider2D = GetComponent<PolygonCollider2D>();
         if (collider2D != null)
             collider2D.isTrigger = true;
+    }
+
+    private static void PreloadSet(TempoMusicSet musicSet)
+    {
+        if (musicSet == null)
+            return;
+
+        PreloadClip(musicSet.MainLoop);
+        PreloadClip(musicSet.GetTempoLayer(TempoBand.Slow));
+        PreloadClip(musicSet.GetTempoLayer(TempoBand.Mid));
+        PreloadClip(musicSet.GetTempoLayer(TempoBand.Fast));
+        PreloadClip(musicSet.GetTempoLayer(TempoBand.Intense));
+    }
+
+    private static void PreloadClip(AudioClip clip)
+    {
+        if (clip != null && clip.loadState == AudioDataLoadState.Unloaded)
+            clip.LoadAudioData();
     }
 
     private static bool TryGetPlayer(Collider2D other)

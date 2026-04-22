@@ -6,6 +6,7 @@ using UnityEngine.Events;
 public class RadioController : MonoBehaviour, IInteractable
 {
     private static readonly Color MidTempoColor = new Color(0.93f, 0.77f, 0.34f, 1f);
+    private static readonly HashSet<RadioController> ActiveRadioControllers = new();
 
     public enum RadioState
     {
@@ -44,7 +45,8 @@ public class RadioController : MonoBehaviour, IInteractable
     [SerializeField] private AudioClip slowSpiritualRadioClip;
     [SerializeField] private AudioClip fastSpiritualRadioClip;
     [SerializeField] private AudioClip intenseSpiritualRadioClip;
-    [SerializeField, Range(0f, 1f)] private float spiritualRadioVolume = 1f;
+    [SerializeField, Range(0f, 8f)] private float spiritualRadioVolume = 8f;
+    [SerializeField, Min(0f)] private float spiritualRadioFadeSpeed = 3f;
 
     [SerializeField] private UnityEvent onTurnedOff;
     [SerializeField] private UnityEvent onTurnedOn;
@@ -71,6 +73,7 @@ public class RadioController : MonoBehaviour, IInteractable
     private float activeAnimationElapsedTime;
     private Transform playerTransform;
     private RadioState activeRadioTrackState = RadioState.Off;
+    private float currentRadioBlend;
 
     private void Awake()
     {
@@ -133,6 +136,7 @@ public class RadioController : MonoBehaviour, IInteractable
 
     private void OnEnable()
     {
+        ActiveRadioControllers.Add(this);
         refreshTimer = 0f;
         ApplyStateVisuals(true);
 
@@ -142,6 +146,7 @@ public class RadioController : MonoBehaviour, IInteractable
 
     private void OnDisable()
     {
+        ActiveRadioControllers.Remove(this);
         StopOnParticles();
         StopSpiritualRadioTrack();
         ClearAffectedReceivers();
@@ -461,15 +466,20 @@ public class RadioController : MonoBehaviour, IInteractable
 
         CachePlayerTransform();
 
+        float targetBlend = 0f;
+
+        if (IsActive && playerTransform != null)
+            targetBlend = GetListenerBlend(playerTransform.position);
+
+        currentRadioBlend = Mathf.MoveTowards(currentRadioBlend, targetBlend, Mathf.Max(0f, spiritualRadioFadeSpeed) * Time.deltaTime);
+
         if (!IsActive || playerTransform == null)
         {
             StopSpiritualRadioTrack();
             return;
         }
 
-        float audibleRadius = Mathf.Max(0.01f, broadcastRadius);
-        Vector2 offset = playerTransform.position - transform.position;
-        if (offset.sqrMagnitude > audibleRadius * audibleRadius)
+        if (targetBlend <= Mathf.Epsilon && currentRadioBlend <= Mathf.Epsilon)
         {
             StopSpiritualRadioTrack();
             return;
@@ -493,10 +503,13 @@ public class RadioController : MonoBehaviour, IInteractable
             activeRadioTrackState = CurrentState;
         }
 
-        spiritualRadioSource.volume = spiritualRadioVolume;
+        spiritualRadioSource.volume = spiritualRadioVolume * currentRadioBlend;
 
-        if (!spiritualRadioSource.isPlaying)
+        if (spiritualRadioSource.volume > Mathf.Epsilon && !spiritualRadioSource.isPlaying)
             spiritualRadioSource.Play();
+
+        if (spiritualRadioSource.volume <= Mathf.Epsilon && spiritualRadioSource.isPlaying)
+            spiritualRadioSource.Stop();
     }
 
     private void ConfigureSpiritualRadioSource()
@@ -508,10 +521,26 @@ public class RadioController : MonoBehaviour, IInteractable
         spiritualRadioSource.loop = true;
         spiritualRadioSource.spatialBlend = 1f;
         spiritualRadioSource.rolloffMode = AudioRolloffMode.Linear;
-        spiritualRadioSource.minDistance = Mathf.Max(0.5f, broadcastRadius * 0.2f);
-        spiritualRadioSource.maxDistance = Mathf.Max(spiritualRadioSource.minDistance + 0.01f, broadcastRadius);
+        float audioFadeRadius = GetAudioFadeRadius();
+        spiritualRadioSource.minDistance = Mathf.Max(0.5f, audioFadeRadius * 0.2f);
+        spiritualRadioSource.maxDistance = Mathf.Max(spiritualRadioSource.minDistance + 0.01f, audioFadeRadius);
         spiritualRadioSource.dopplerLevel = 0f;
         spiritualRadioSource.outputAudioMixerGroup = spiritualRadioMixerGroup;
+    }
+
+    public static float GetStrongestBlendAt(Vector3 listenerPosition)
+    {
+        float strongestBlend = 0f;
+
+        foreach (RadioController radioController in ActiveRadioControllers)
+        {
+            if (radioController == null)
+                continue;
+
+            strongestBlend = Mathf.Max(strongestBlend, radioController.GetMusicBlend(listenerPosition));
+        }
+
+        return Mathf.Clamp01(strongestBlend);
     }
 
     private void CachePlayerTransform()
@@ -535,9 +564,32 @@ public class RadioController : MonoBehaviour, IInteractable
         };
     }
 
+    private float GetMusicBlend(Vector3 listenerPosition)
+    {
+        if (!IsActive || GetSpiritualRadioClip(CurrentState) == null)
+            return 0f;
+
+        return GetListenerBlend(listenerPosition);
+    }
+
+    private float GetListenerBlend(Vector3 listenerPosition)
+    {
+        float audibleRadius = GetAudioFadeRadius();
+        float distance = Vector3.Distance(listenerPosition, transform.position);
+        float normalizedDistance = Mathf.Clamp01(distance / audibleRadius);
+        float proximity = 1f - normalizedDistance;
+        return Mathf.SmoothStep(0f, 1f, proximity);
+    }
+
+    private float GetAudioFadeRadius()
+    {
+        return Mathf.Max(0.01f, broadcastRadius * 1.5f);
+    }
+
     private void StopSpiritualRadioTrack()
     {
         activeRadioTrackState = RadioState.Off;
+        currentRadioBlend = 0f;
 
         if (spiritualRadioSource == null)
             return;

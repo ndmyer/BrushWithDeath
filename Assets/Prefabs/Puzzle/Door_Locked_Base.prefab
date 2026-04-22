@@ -94,6 +94,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::LockedDoor
   startsOpen: 0
+  openSfxCue: 29
   blockingCollider: {fileID: 2312560482722952134}
   closedVisual: {fileID: 5296162101494664585}
   openVisual: {fileID: 4213814617986786057}

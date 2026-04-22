@@ -1,3 +1,4 @@
+using System.Collections;
 using UnityEngine;
 
 public class DynamicCameraFollow : MonoBehaviour
@@ -32,9 +33,17 @@ public class DynamicCameraFollow : MonoBehaviour
     [SerializeField] private float zoomOutSmoothTime = 0.1f;
     [SerializeField] private float zoomInSmoothTime = 0.2f;
 
+    [Header("Focus Override")]
+    [SerializeField] private float focusOverridePositionSmoothTime = 0.12f;
+    [SerializeField] private float focusOverrideZoomSmoothTime = 0.12f;
+
     private readonly FocusTarget[] focusTargets = new FocusTarget[3];
     private Vector3 positionVelocity;
     private float zoomVelocity;
+    private Coroutine focusOverrideRoutine;
+    private Vector3 focusOverridePoint;
+    private float focusOverrideOrthographicSize;
+    private bool hasFocusOverride;
 
     private struct FocusTarget
     {
@@ -86,6 +95,8 @@ public class DynamicCameraFollow : MonoBehaviour
         maxOrthographicSize = Mathf.Max(baseOrthographicSize, maxOrthographicSize);
         zoomOutSmoothTime = Mathf.Max(0f, zoomOutSmoothTime);
         zoomInSmoothTime = Mathf.Max(0f, zoomInSmoothTime);
+        focusOverridePositionSmoothTime = Mathf.Max(0f, focusOverridePositionSmoothTime);
+        focusOverrideZoomSmoothTime = Mathf.Max(0f, focusOverrideZoomSmoothTime);
     }
 
     private void Reset()
@@ -128,6 +139,12 @@ public class DynamicCameraFollow : MonoBehaviour
         if (target == null)
             return;
 
+        if (hasFocusOverride)
+        {
+            UpdateFocusOverrideFrame(snapInstantly);
+            return;
+        }
+
         int focusTargetCount = BuildFocusTargets();
         Vector3 desiredCenter = CalculateWeightedCenter(focusTargetCount);
         Vector3 desiredPosition = new Vector3(desiredCenter.x, desiredCenter.y, target.position.z - followDistance);
@@ -142,6 +159,36 @@ public class DynamicCameraFollow : MonoBehaviour
         }
 
         UpdateOrthographicSize(desiredCenter, focusTargetCount, snapInstantly);
+    }
+
+    public void FocusOnPoint(Transform focusPoint, float orthographicSize, float duration)
+    {
+        if (focusPoint == null)
+            return;
+
+        FocusOnPoint(focusPoint.position, orthographicSize, duration);
+    }
+
+    public void FocusOnPoint(Vector3 worldPoint, float orthographicSize, float duration)
+    {
+        float clampedSize = Mathf.Max(0.01f, orthographicSize);
+        float holdDuration = Mathf.Max(0f, duration);
+
+        if (focusOverrideRoutine != null)
+            StopCoroutine(focusOverrideRoutine);
+
+        focusOverrideRoutine = StartCoroutine(FocusOverrideRoutine(worldPoint, clampedSize, holdDuration));
+    }
+
+    public void ClearFocusOverride()
+    {
+        if (focusOverrideRoutine != null)
+        {
+            StopCoroutine(focusOverrideRoutine);
+            focusOverrideRoutine = null;
+        }
+
+        hasFocusOverride = false;
     }
 
     private int BuildFocusTargets()
@@ -280,5 +327,48 @@ public class DynamicCameraFollow : MonoBehaviour
 
         focusTargets[focusTargetCount] = new FocusTarget(position, weight);
         focusTargetCount++;
+    }
+
+    private IEnumerator FocusOverrideRoutine(Vector3 worldPoint, float orthographicSize, float duration)
+    {
+        focusOverridePoint = worldPoint;
+        focusOverrideOrthographicSize = orthographicSize;
+        hasFocusOverride = true;
+
+        if (duration > 0f)
+            yield return new WaitForSeconds(duration);
+
+        hasFocusOverride = false;
+        focusOverrideRoutine = null;
+    }
+
+    private void UpdateFocusOverrideFrame(bool snapInstantly)
+    {
+        Vector3 desiredPosition = new Vector3(focusOverridePoint.x, focusOverridePoint.y, transform.position.z);
+
+        if (snapInstantly || focusOverridePositionSmoothTime <= 0f)
+        {
+            transform.position = desiredPosition;
+        }
+        else
+        {
+            transform.position = Vector3.SmoothDamp(transform.position, desiredPosition, ref positionVelocity, focusOverridePositionSmoothTime);
+        }
+
+        if (targetCamera == null || !targetCamera.orthographic)
+            return;
+
+        float desiredSize = Mathf.Min(focusOverrideOrthographicSize, maxOrthographicSize);
+        if (snapInstantly || focusOverrideZoomSmoothTime <= 0f)
+        {
+            targetCamera.orthographicSize = desiredSize;
+            return;
+        }
+
+        targetCamera.orthographicSize = Mathf.SmoothDamp(
+            targetCamera.orthographicSize,
+            desiredSize,
+            ref zoomVelocity,
+            focusOverrideZoomSmoothTime);
     }
 }
