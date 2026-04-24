@@ -123452,6 +123452,10 @@ PrefabInstance:
       propertyPath: requiredTempo
       value: 2
       objectReference: {fileID: 0}
+    - target: {fileID: 3903001975577528368, guid: 24d23f8916d347f4795e73344aee5cb4, type: 3}
+      propertyPath: listenToGlobalTempo
+      value: 1
+      objectReference: {fileID: 0}
     - target: {fileID: 6100373631338117259, guid: 24d23f8916d347f4795e73344aee5cb4, type: 3}
       propertyPath: m_LocalScale.x
       value: 0.5

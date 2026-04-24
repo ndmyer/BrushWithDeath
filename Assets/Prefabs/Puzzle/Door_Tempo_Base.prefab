@@ -96,7 +96,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::TempoReceiver
   requiredTempo: 1
-  listenToGlobalTempo: 1
+  listenToGlobalTempo: 0
   tempoService: {fileID: 0}
   proximityCollider: {fileID: 0}
   targetState: {fileID: 3331179812127191107}
